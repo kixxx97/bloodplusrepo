@@ -4,8 +4,54 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "0a7326069d9453abce3e02564d08988e",
+    "content-hash": "0bb0bb121cee67359bdefebf000647d9",
     "packages": [
+        {
+            "name": "bacon/bacon-qr-code",
+            "version": "1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Bacon/BaconQrCode.git",
+                "reference": "5a91b62b9d37cee635bbf8d553f4546057250bee"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Bacon/BaconQrCode/zipball/5a91b62b9d37cee635bbf8d553f4546057250bee",
+                "reference": "5a91b62b9d37cee635bbf8d553f4546057250bee",
+                "shasum": ""
+            },
+            "require": {
+                "ext-iconv": "*",
+                "php": "^5.4|^7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8"
+            },
+            "suggest": {
+                "ext-gd": "to generate QR code images"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "BaconQrCode": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Ben Scholzen 'DASPRiD'",
+                    "email": "mail@dasprids.de",
+                    "homepage": "http://www.dasprids.de",
+                    "role": "Developer"
+                }
+            ],
+            "description": "BaconQrCode is a QR code generator for PHP.",
+            "homepage": "https://github.com/Bacon/BaconQrCode",
+            "time": "2017-10-17T09:59:25+00:00"
+        },
         {
             "name": "barryvdh/laravel-cors",
             "version": "v0.9.3",
@@ -68,6 +114,62 @@
                 "laravel"
             ],
             "time": "2017-08-28T11:42:05+00:00"
+        },
+        {
+            "name": "barryvdh/laravel-dompdf",
+            "version": "v0.8.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/barryvdh/laravel-dompdf.git",
+                "reference": "3b2235e589616331d68482d61b7763789a2600fe"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/barryvdh/laravel-dompdf/zipball/3b2235e589616331d68482d61b7763789a2600fe",
+                "reference": "3b2235e589616331d68482d61b7763789a2600fe",
+                "shasum": ""
+            },
+            "require": {
+                "dompdf/dompdf": "^0.8",
+                "illuminate/support": "5.1.x|5.2.x|5.3.x|5.4.x|5.5.x",
+                "php": ">=5.5.9"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.8-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "Barryvdh\\DomPDF\\ServiceProvider"
+                    ],
+                    "aliases": {
+                        "PDF": "Barryvdh\\DomPDF\\Facade"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Barryvdh\\DomPDF\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Barry vd. Heuvel",
+                    "email": "barryvdh@gmail.com"
+                }
+            ],
+            "description": "A DOMPDF Wrapper for Laravel",
+            "keywords": [
+                "dompdf",
+                "laravel",
+                "pdf"
+            ],
+            "time": "2017-07-29T19:01:17+00:00"
         },
         {
             "name": "brozot/laravel-fcm",
@@ -701,6 +803,68 @@
             "time": "2014-09-09T13:34:57+00:00"
         },
         {
+            "name": "dompdf/dompdf",
+            "version": "v0.8.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dompdf/dompdf.git",
+                "reference": "5113accd9ae5d466077cce5208dcf3fb871bf8f6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dompdf/dompdf/zipball/5113accd9ae5d466077cce5208dcf3fb871bf8f6",
+                "reference": "5113accd9ae5d466077cce5208dcf3fb871bf8f6",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-gd": "*",
+                "ext-mbstring": "*",
+                "phenx/php-font-lib": "0.5.*",
+                "phenx/php-svg-lib": "0.3.*",
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.8.*",
+                "squizlabs/php_codesniffer": "2.*"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-develop": "0.7-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Dompdf\\": "src/"
+                },
+                "classmap": [
+                    "lib/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-2.1"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Ménager",
+                    "email": "fabien.menager@gmail.com"
+                },
+                {
+                    "name": "Brian Sweeney",
+                    "email": "eclecticgeek@gmail.com"
+                },
+                {
+                    "name": "Gabriel Bull",
+                    "email": "me@gabrielbull.com"
+                }
+            ],
+            "description": "DOMPDF is a CSS 2.1 compliant HTML to PDF converter",
+            "homepage": "https://github.com/dompdf/dompdf",
+            "time": "2017-11-26T14:49:08+00:00"
+        },
+        {
             "name": "erusev/parsedown",
             "version": "1.6.3",
             "source": {
@@ -1062,6 +1226,58 @@
                 "laravel"
             ],
             "time": "2017-10-02T14:52:05+00:00"
+        },
+        {
+            "name": "laravel-notification-channels/gcm",
+            "version": "v0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel-notification-channels/gcm.git",
+                "reference": "8b1a0a40f33da0125774d8404640deff84eb8eb2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel-notification-channels/gcm/zipball/8b1a0a40f33da0125774d8404640deff84eb8eb2",
+                "reference": "8b1a0a40f33da0125774d8404640deff84eb8eb2",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/events": "^5.1|^5.2|^5.3",
+                "illuminate/notifications": "^5.3",
+                "illuminate/queue": "^5.1|^5.2|^5.3",
+                "illuminate/support": "^5.1|^5.2|^5.3",
+                "php": ">=5.5",
+                "zendframework/zendservice-google-gcm": "^2.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^0.9.5",
+                "phpunit/phpunit": "4.*"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.2-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "NotificationChannels\\Gcm\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fruitcake",
+                    "email": "info@fruitcake.nl",
+                    "homepage": "https://fruitcake.nl"
+                }
+            ],
+            "description": "Android GCM Push Notification Channel",
+            "homepage": "https://github.com/laravel-notification-channels/gcm",
+            "time": "2017-08-10T12:13:42+00:00"
         },
         {
             "name": "laravel/framework",
@@ -1613,6 +1829,83 @@
             "time": "2017-09-27T21:40:39+00:00"
         },
         {
+            "name": "phenx/php-font-lib",
+            "version": "0.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PhenX/php-font-lib.git",
+                "reference": "760148820110a1ae0936e5cc35851e25a938bc97"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PhenX/php-font-lib/zipball/760148820110a1ae0936e5cc35851e25a938bc97",
+                "reference": "760148820110a1ae0936e5cc35851e25a938bc97",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "FontLib\\": "src/FontLib"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Ménager",
+                    "email": "fabien.menager@gmail.com"
+                }
+            ],
+            "description": "A library to read, parse, export and make subsets of different types of font files.",
+            "homepage": "https://github.com/PhenX/php-font-lib",
+            "time": "2017-09-13T16:14:37+00:00"
+        },
+        {
+            "name": "phenx/php-svg-lib",
+            "version": "v0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PhenX/php-svg-lib.git",
+                "reference": "a85f7fe9fe08d093a4a8583cdd306b553ff918aa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PhenX/php-svg-lib/zipball/a85f7fe9fe08d093a4a8583cdd306b553ff918aa",
+                "reference": "a85f7fe9fe08d093a4a8583cdd306b553ff918aa",
+                "shasum": ""
+            },
+            "require": {
+                "sabberworm/php-css-parser": "8.1.*"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~5.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Svg\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Ménager",
+                    "email": "fabien.menager@gmail.com"
+                }
+            ],
+            "description": "A library to read, parse and export to PDF SVG files.",
+            "homepage": "https://github.com/PhenX/php-svg-lib",
+            "time": "2017-05-24T10:07:27+00:00"
+        },
+        {
             "name": "predis/predis",
             "version": "v1.1.1",
             "source": {
@@ -2006,6 +2299,145 @@
                 "uuid"
             ],
             "time": "2017-09-22T20:46:04+00:00"
+        },
+        {
+            "name": "ronaldborla/chikka",
+            "version": "2.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ronaldborla/chikka.git",
+                "reference": "17533afc8c986338e06ff9e05ebcc16b9b5b2026"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ronaldborla/chikka/zipball/17533afc8c986338e06ff9e05ebcc16b9b5b2026",
+                "reference": "17533afc8c986338e06ff9e05ebcc16b9b5b2026",
+                "shasum": ""
+            },
+            "require": {
+                "nesbot/carbon": "~1.0"
+            },
+            "suggest": {
+                "guzzlehttp/guzzle": "Allows for implementation of the Guzzle HTTP client"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Borla\\Chikka\\": "src/Borla/Chikka"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ronald Borla",
+                    "email": "ronald.borla@yahoo.com"
+                }
+            ],
+            "description": "Send and receive SMS using Chikka API",
+            "keywords": [
+                "chikka",
+                "ronaldborla",
+                "sms"
+            ],
+            "time": "2015-06-06T15:44:27+00:00"
+        },
+        {
+            "name": "sabberworm/php-css-parser",
+            "version": "8.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sabberworm/PHP-CSS-Parser.git",
+                "reference": "850cbbcbe7fbb155387a151ea562897a67e242ef"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sabberworm/PHP-CSS-Parser/zipball/850cbbcbe7fbb155387a151ea562897a67e242ef",
+                "reference": "850cbbcbe7fbb155387a151ea562897a67e242ef",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.2"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Sabberworm\\CSS": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Raphael Schweikert"
+                }
+            ],
+            "description": "Parser for CSS Files written in PHP",
+            "homepage": "http://www.sabberworm.com/blog/2010/6/10/php-css-parser",
+            "keywords": [
+                "css",
+                "parser",
+                "stylesheet"
+            ],
+            "time": "2016-07-19T19:14:21+00:00"
+        },
+        {
+            "name": "simplesoftwareio/simple-qrcode",
+            "version": "1.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/SimpleSoftwareIO/simple-qrcode.git",
+                "reference": "0d8fbf73f7adc166ec5aabbf898b7327f6c69600"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/SimpleSoftwareIO/simple-qrcode/zipball/0d8fbf73f7adc166ec5aabbf898b7327f6c69600",
+                "reference": "0d8fbf73f7adc166ec5aabbf898b7327f6c69600",
+                "shasum": ""
+            },
+            "require": {
+                "bacon/bacon-qr-code": "1.0.*",
+                "ext-gd": "*",
+                "illuminate/support": ">=4.2.0",
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "0.9.*",
+                "phpunit/phpunit": "~5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "SimpleSoftwareIO\\QrCode\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Simple Software LLC",
+                    "email": "support@simplesoftware.io"
+                }
+            ],
+            "description": "Simple QrCode is a QR code generator made for Laravel.",
+            "homepage": "http://www.simplesoftware.io",
+            "keywords": [
+                "Simple",
+                "generator",
+                "laravel",
+                "qrcode",
+                "wrapper"
+            ],
+            "time": "2016-12-06T01:39:52+00:00"
         },
         {
             "name": "sly/notification-pusher",
@@ -3672,6 +4104,53 @@
             "time": "2015-05-11T14:41:42+00:00"
         },
         {
+            "name": "laravel-notification-channels/ionic-push-notifications",
+            "version": "1.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel-notification-channels/ionic-push-notifications.git",
+                "reference": "3e7a9ca6dfe108d850d06437e2cbcc27b17bfd00"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel-notification-channels/ionic-push-notifications/zipball/3e7a9ca6dfe108d850d06437e2cbcc27b17bfd00",
+                "reference": "3e7a9ca6dfe108d850d06437e2cbcc27b17bfd00",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "~6.0",
+                "illuminate/notifications": "5.3.*|5.4.*|5.5.*",
+                "illuminate/support": "5.1.*|5.2.*|5.3.*|5.4.*|5.5.*",
+                "php": ">=5.6.4"
+            },
+            "require-dev": {
+                "mockery/mockery": "^0.9.5",
+                "orchestra/database": "3.3.x-dev",
+                "orchestra/testbench": "3.3.x-dev",
+                "phpunit/phpunit": "4.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "NotificationChannels\\IonicPushNotifications\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mark Beech",
+                    "email": "m@rkbee.ch",
+                    "homepage": "http://ma.rkbee.ch"
+                }
+            ],
+            "description": "Ionic Push Notifications driver",
+            "homepage": "https://github.com/laravel-notification-channels/ionic-push-notifications",
+            "time": "2017-07-22T19:27:44+00:00"
+        },
+        {
             "name": "mockery/mockery",
             "version": "0.9.9",
             "source": {
@@ -4997,6 +5476,93 @@
                 "validate"
             ],
             "time": "2016-11-23T20:04:58+00:00"
+        },
+        {
+            "name": "werneckbh/laravel-qr-code",
+            "version": "0.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/werneckbh/laravel-qr-code.git",
+                "reference": "0b570134d92cd77266bfd74f4bb57953e3176c09"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/werneckbh/laravel-qr-code/zipball/0b570134d92cd77266bfd74f4bb57953e3176c09",
+                "reference": "0b570134d92cd77266bfd74f4bb57953e3176c09",
+                "shasum": ""
+            },
+            "require": {
+                "werneckbh/qr-code": "^2.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "LaravelQRCode\\Providers\\QRCodeServiceProvider"
+                    ],
+                    "aliases": {
+                        "QRCode": "LaravelQRCode\\Facades\\QRCode"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "LaravelQRCode\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bruno Werneck",
+                    "email": "brunovaulawerneck@gmail.com"
+                }
+            ],
+            "description": "QR Code Generator for PHP wrapper for Laravel",
+            "time": "2018-01-25T14:36:22+00:00"
+        },
+        {
+            "name": "werneckbh/qr-code",
+            "version": "2.1.15",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/werneckbh/qr-code.git",
+                "reference": "ec66df0ebd5a3e1ea895bb5fba82ab9c3b9ff8f0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/werneckbh/qr-code/zipball/ec66df0ebd5a3e1ea895bb5fba82ab9c3b9ff8f0",
+                "reference": "ec66df0ebd5a3e1ea895bb5fba82ab9c3b9ff8f0",
+                "shasum": ""
+            },
+            "require-dev": {
+                "khanamiryan/qrcode-detector-decoder": "^1.0",
+                "phpunit/phpunit": "^6.5"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/helpers/constants.php",
+                    "src/helpers/functions.php"
+                ],
+                "psr-4": {
+                    "QR_Code\\": "src/QR_Code/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bruno Vaula Werneck",
+                    "email": "brunovaulawerneck@gmail.com"
+                }
+            ],
+            "description": "QR Code Generator for PHP",
+            "time": "2018-02-04T20:29:27+00:00"
         }
     ],
     "aliases": [],

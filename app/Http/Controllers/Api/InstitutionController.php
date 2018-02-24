@@ -12,7 +12,7 @@ class InstitutionController extends Controller
 
     protected function getInstitutions()
     {
-        $institutions = Institution::all();
+        $institutions = Institution::where('status','active')->get();
         $message = array('institutions' => $institutions,'message' => '200','status' => 'Successful retrieval of institutions');
         return response()->json($message);
     }	

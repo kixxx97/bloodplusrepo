@@ -23,7 +23,6 @@ class SocialController extends Controller
     	// $posts = Post
         $donateCount = count(DonateRequest::where('status','Done')->where('initiated_by',Auth::user()->id)->get());
         $requestCount = count(BloodRequest::where('status','Done')->where('initiated_by',Auth::user()->id)->get());
-
     	$followers = Auth::user()->followers;
     	$tmpFollowing = Auth::user()->followedUsers->merge(Auth::user()->followedInstitutions);
         $following = null;
@@ -62,24 +61,63 @@ class SocialController extends Controller
     		'message' => 'Retrieved posts and followers']);
     }
     
-    public function followUser(Request $request,User $user)
+    public function editProfile(Request $request) {
+        //
+
+    }
+
+    public function followUser(Request $request, $user)
     {
-    	// dd(Auth::user()->id);
     	$followers = Auth::user()->followers;
-        
-        if($user->id == Auth::user()->id)
+        try{
+        // dd($user);
+            $tmpUser = User::findOrFail($user);
+            $class = 'User';
+        }catch(\Exception $e)
+        {
+            try{
+            $tmpUser = Institution::findOrFail($user);
+            $class = 'Institution';
+            }
+            catch(\Exception $e)
+            {
+                return response()->json([
+            'status' => 'Error Error',
+            'message' => 'User does not exist']);
+            }
+        }
+        if($class == 'User')
+        {
+            if($tmpUser->id == Auth::user()->id)
         {
             return response()->json(['status' => 'Error Error',
                 'message' => 'Cannot follow yourself']);
         }
-    	// dd(count($followers));
-    	if(!Auth::user()->followedUsers->contains($user))
-    	{
-            Auth::user()->followedUsers()->attach($user->id);    
-    		return response()->json(['status' => 'Successful', 'message' => 'Successfully followed the user']);
-    	}
-    	else
-    		return response()->json(['status' => 'Error', 'message' => 'Couldn\'t follow the user']);
+        // dd(count($followers));
+        if(!Auth::user()->followedUsers->contains($tmpUser))
+        {
+            Auth::user()->followedUsers()->attach($tmpUser->id);    
+            return response()->json(['status' => 'Successful', 'message' => 'Successfully followed the user']);
+        }
+        else
+            return response()->json(['status' => 'Error', 'message' => 'Couldn\'t follow the user']);
+        }
+        if($class == 'Institution')
+        {
+            if($tmpUser->id == Auth::user()->id)
+        {
+            return response()->json(['status' => 'Error Error',
+                'message' => 'Cannot follow yourself']);
+        }
+        // dd(count($followers));
+        if(!Auth::user()->followedUsers->contains($tmpUser))
+        {
+            Auth::user()->followedInstitutions()->attach($tmpUser->id);    
+            return response()->json(['status' => 'Successful', 'message' => 'Successfully followed the institution']);
+        }
+        else
+            return response()->json(['status' => 'Error', 'message' => 'Couldn\'t follow the user']);
+        }
 
     }
 
@@ -158,14 +196,32 @@ class SocialController extends Controller
             ]);
 
     }
-    public function unFollowUser(User $user)
+    public function unFollowUser($user)
     {
-    	$bool = $user->followers()->detach(Auth::user()->id);
-        if($user->id == Auth::user()->id)
+        try{
+        // dd($user);
+            $tmpUser = User::findOrFail($user);
+            $class = 'User';
+        }catch(\Exception $e)
+        {
+            try{
+            $tmpUser = Institution::findOrFail($user);
+            $class = 'Institution';
+            }
+            catch(\Exception $e)
+            {
+                return response()->json([
+            'status' => 'Error Error',
+            'message' => 'User does not exist']);
+            }
+        }
+    	
+        if($tmpUser->id == Auth::user()->id)
         {
             return response()->json(['status' => 'Error Error',
                 'message' => 'Cannot unfollow yourself']);
         }
+        $bool = $tmpUser->followers()->detach(Auth::user()->id);
     	if($bool)
     	{
     		return response()->json(['status' => 'Successful', 'message' => 'Successfully unfollowed the user']);
@@ -188,7 +244,7 @@ class SocialController extends Controller
             return response()->json([
                 'users' => $users,
                 'status' => 'Error',
-                'message' => 'Error retrieveing users']);
+                'message' => 'Error retrieving users']);
         }
     }
 
@@ -197,12 +253,12 @@ class SocialController extends Controller
         // dd($user);
         try{
         // dd($user);
-            $model = User::findOrFail($user);
+            $tmpModel = User::findOrFail($user);
             $class = 'User';
         }catch(\Exception $e)
         {
             try{
-            $model = Institution::findOrFail($user);
+            $tmpModel = Institution::findOrFail($user);
             $class = 'Institution';
             }
             catch(\Exception $e)
@@ -211,6 +267,70 @@ class SocialController extends Controller
             'status' => 'Error Error',
             'message' => 'User does not exist']);
             }
+        }
+        // dd($tmpModel);
+
+        $picture =  $tmpModel->picture();
+        $banner = $tmpModel->banner();
+
+        if($class == 'User')
+        {
+        $donateCount = count(DonateRequest::where('status','Done')->where('initiated_by',$tmpModel->id)->get());
+        $requestCount = count(BloodRequest::where('status','Done')->where('initiated_by',$tmpModel->id)->get());
+        $lastRequest = DonateRequest::where('status','Done')->where('initiated_by',$tmpModel->id)->orderBy('appointment_time','desc')->first();
+
+        if($lastRequest == null)
+        {
+            $lastRequest = null;
+            $nextDateDonation = 'Yes';
+            $lastDayDonated = null;
+        }
+        else
+        {
+            $date = $lastRequest->appointment_time;
+            $nextDateDonation = $date->addDays(90)->toDateTimeString();
+            $lastDayDonated = $lastRequest->appointment_time->toDateTimeString();
+        }
+
+        $following = Auth::user()->followedUsers->merge(Auth::user()->followedInstitutions);
+        if($following->contains('id',$tmpModel->id))
+        {
+            $followed =true;
+        }
+        else
+        {
+            $followed =false;
+        }
+        $model['id'] = $tmpModel->id;
+        $model['email'] = $tmpModel->email;
+        $model['picture'] = $picture;
+        $model['banner'] = $banner;
+        $model['name'] = $tmpModel->name();
+        $model['gender'] = $tmpModel->gender;
+        $model['dob'] = $tmpModel->dob;
+        $model['bloodType'] = $tmpModel->bloodType;
+        $model['address'] = $tmpModel->address['place'];
+        $model['donateCount'] = $donateCount;
+        $model['requestCount'] = $requestCount;
+        $model['lastDayDonated'] = $lastDayDonated;
+        $model['nextDateDonation'] = $nextDateDonation;
+        $model['followed'] = $followed;
+        $model['followers'] = count($tmpModel->followers);
+        $model['following'] = count($tmpModel->followedUsers) + count($tmpModel->followedInstitutions);
+        }
+        elseif($class ='Institution')
+        {
+        $model['id'] = $tmpModel->id;
+        $model['email'] = $tmpModel->email;
+        $model['contact'] = $tmpModel->contact;
+        $model['name'] = $tmpModel->name();
+        $model['picture'] = $picture;
+        $model['banner'] = $banner;
+        $model['address'] =  $tmpModel->address['place'];
+        $model['about_us'] = $tmpModel->about_us;
+        $model['facebook'] = $tmpModel->links['facebook'];
+        $model['twitter'] = $tmpModel->links['twitter'];
+        $model['website'] = $tmpModel->links['website'];
         }
         return response()->json(['user' => $model,
             'class' => $class,
@@ -222,6 +342,7 @@ class SocialController extends Controller
         $wildcard = $request->input('name');
         // dd($wildcard)
         $tmpUsers = User::where('fname', 'like', $wildcard."%")->orWhere('lname','like', $wildcard."%")->get();
+        $tmpUsers = $tmpUsers->union(Institution::where('institution','like',$wildcard."%")->get());
         $users = null;
         if(count($tmpUsers) != 0)
         {  
@@ -260,7 +381,68 @@ class SocialController extends Controller
                 'message' => 'Successfully liked the post']);
         }
     }
-
+    public function getUserFollowers(User $user)
+    {
+        $tmpFollowers = $user->followers; 
+        if(count($tmpFollowers) == 0)
+        {
+            return response()->json(null);
+        }
+        $count = 0;
+        $followers = array();
+        foreach($tmpFollowers as $follower)
+        {
+            $followers[$count]['id'] = $follower->id;
+            $followers[$count]['picture'] = $follower->picture();
+            $followers[$count]['name'] = $follower->name();
+            $count++;
+        }
+        return response()->json($followers);
+    }
+    public function getUserFollowings(User $user)
+    {
+        $tmpFollowingInstitutions = $user->followedInstitutions;
+        $tmpFollowingUsers = $user->followedUsers;
+        if($tmpFollowingUsers == null && $tmpFollowingInstitutions == null)
+            return response()->json(null);
+        if(count($tmpFollowingInstitutions) == 0)
+        {
+            $count = 0;
+            $followingUsers = array();
+            foreach($tmpFollowingUsers as $user)
+            {
+                $followingUsers[$count]['id'] = $user->id;
+                $followingUsers[$count]['picture'] = $user->picture();
+                $followingUsers[$count]['name'] = $institution->name();
+                $count++;
+            }
+            return response()->json($followingUsers);
+        }
+        if(count($tmpFollowingUsers) == 0)
+        {
+            $followingInstitutions = array();
+            $count = 0;
+            foreach($tmpFollowingInstitutions as $institution)
+            {
+                $followingInstitutions[$count]['id'] = $institution->id;
+                $followingInstitutions[$count]['picture'] = $institution->picture();
+                $followingInstitutions[$count]['name'] = $institution->name();
+                $count++;
+            }
+            return response()->json($followingInstitutions);
+        }
+        $tmpTotalFollowings = $tmpFollowingInstitutions->merge($tmpFollowingUsers);
+        $totalFollowings = array();
+        $count = 0;
+        foreach($tmpTotalFollowings as $followings)
+        {
+            $totalFollowings[$count]['id'] = $followings->id;
+            $totalFollowings[$count]['picture'] = $followings->picture();
+            $totalFollowings[$count]['name'] = $followings->name();
+            $count++;
+        }
+        return response()->json($totalFollowings);
+    }
     public function unReact(Post $post) {
         $bool = $post->likes->contains(function ($value, $key) {
             return $value->pivot->initiated_by == Auth::user()->id;
@@ -281,6 +463,7 @@ class SocialController extends Controller
             return response()->json([
                 'status' => 'Error',
                 'message' => 'Couldn\'t unlike the post']);
-
     }
+
+
 }

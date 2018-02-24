@@ -95,6 +95,7 @@ return [
 
     'register_url' => '/admin/register',
 
+
     /*
     |--------------------------------------------------------------------------
     | Menu Items
@@ -151,6 +152,11 @@ return [
                     'url' => 'admin/bloodbags/stagedbloodbag',
                 ]
             ]
+        ],
+        [
+            'text' => 'Settings',
+            'url'  => 'admin/settings',
+            'icon' => 'cog',
         ]
     
         // [

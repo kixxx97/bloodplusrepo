@@ -14,15 +14,8 @@ use App\Log;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */ 	
-Route::post('testtt',function(Request $request) {
-		$array = array();
-		$hello = json_decode($request->input('params'));
-		// for($i = 0; $i < 3; $i++)
-		// {
-		// 	array_push($array,$request->input('params'.$i));
-		// 	echo $request->input('params'.$i)."<br>";
-		// }
-		return response()->json($hello);
+Route::get('testtt',function(Request $request) {
+		
 	});
 
 Route::group(['middleware' => 'preAuth'], function () {
@@ -31,11 +24,16 @@ Route::group(['middleware' => 'preAuth'], function () {
 	Route::get('/institutions','Api\InstitutionController@getInstitutions');
 	Route::get('/campaigns','Api\CampaignController@getCampaigns');
 	
-	Route::get('/user/{user}','Api\SocialController@getUser');
+	
+	Route::get('/user/{user}/followers','Api\SocialController@getUserFollowers');
+	Route::get('/user/{user}/followings','Api\SocialController@getUserFollowings');
+	
 	Route::get('/users','Api\SocialController@getUsers');
 	Route::get('/post/{post}/comments','Api\CommentController@getComments');
 	// Route::post('/user','Api\SocialController@searchUsers');
  	Route::group(['middleware' => 'auth:api'], function() {
+ 		Route::post('/user/notification/unread','Api\AuthenticationController@getUnreadNotifications');
+ 		Route::post('/user/refreshtoken','Api\AuthenticationController@refreshToken');
  		Route::post('/users','Api\SocialController@getAllUsers');
  		Route::get('/following/retrieve','Api\SocialController@getFollowing');
  		Route::get('/followers/retrieve','Api\SocialController@getFollowers');
@@ -48,26 +46,22 @@ Route::group(['middleware' => 'preAuth'], function () {
  		Route::post('/request/{request}/retrieve','Api\BloodRequestController@getSpecificBloodrequest');
  		Route::post('/donate/create','Api\DonateController@createDonateRequest');
  		Route::post('/request/create','Api\BloodRequestController@createBloodRequest');
+ 		Route::post('/donate/{donateRequest}/medical_history/create','Api\DonateController@createMedicalHistory');
+ 		Route::get('/donate/{donateRequest}/medical_history/retrieve','Api\DonateController@retrieveMedicalHistory');
  		Route::post('/donate/retrieve','Api\DonateController@getDonateRequest');
+ 		Route::post('/donate/{donateRequest}/acceptAppointment','Api\DonateController@acceptAppointment');
+
  		Route::post('/campaign/join/{campaign}','Api\CampaignController@joinCampaign');
  		Route::post('/campaigns/retrieve','Api\CampaignController@retrieveCampaigns');
 		Route::post('/campaign/{campaign}','Api\CampaignController@getSpecificCampaign');
+		Route::post('/campaign/{campaign}/remark','Api\CampaignController@remarkAttendee');
+		Route::post('/user/{user}','Api\SocialController@getUser');
+		Route::post('/user/{user}/posts','Api\PostController@getUserPosts');
 		Route::post('/posts/retrieve','Api\PostController@getAllPost');
  		Route::post('/post/{post}/react','Api\SocialController@react');
     	Route::post('/post/{post}/unreact','Api\SocialController@unReact');
     	Route::post('/post/{post}/comment/create','Api\CommentController@createComment');
-    	Route::post('/notifications','Api\NotificationsController@getNotifications');
-    
-		Route::post('/test',function(Request $request) {
-		// dd($request->input());	
-	 	Log::create(['action' => 'Someone just went to: post /test']);
-	 	$user = Auth::guard('api')->user();
-	 	return response()->json(['user' => $user,'inputs' => $request->input()]);
- 		});
- 		Route::get('/test',function(Request $request) {
-	 	Log::create(['action' => 'Someone just went to: get /test']);
-	 	$user = Auth::guard('api')->user();
-	 	return response()->json(Array($user,$request->input()));
-	 	}); 
+    	Route::post('/notifications','Api\NotificationsController@getNotifications'); 
  	});
+ 	Route::get('/institution/{institution}/campaigns','Api\CampaignController@getInstitutionCampaigns');
 });

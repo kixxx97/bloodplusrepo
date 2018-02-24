@@ -24,10 +24,24 @@ class BloodType extends Model
     	return $this->hasMany('App\BloodInventory','blood_type_id','id');
     }
 
-    public function nonReactive()
+    public function institutionInventory($id)
     {
         $inventory = $this->inventory;
-        $filtered = $inventory->filter(function ($value, $key) {
+        $filtered = $inventory->filter(function ($value, $key) use ($id){
+        if($value->screenedBlood->donation->institution_id == $id)
+        {
+            return true;
+        }
+        });
+        return $filtered;
+    }
+    public function nonReactive($id)
+    {
+        $inventory = $this->inventory;
+        $filtered = $inventory->filter(function ($value, $key) use ($id){
+        // dd($id);
+        // dd($value);
+        if($value->screenedBlood->donation->institution_id == $id)
         return $value->status == 'Available';
         });
         return $filtered;

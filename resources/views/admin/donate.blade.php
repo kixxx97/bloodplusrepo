@@ -71,11 +71,11 @@
               <td>RESPONSE</td>
               <td>{{$donor->bloodRequest->request->id}}</td>
               <td>{{ $donor->created_at->format('F d Y') }}</td>
-              <td> ASAP</td>
+              <td>  P</td>
               @endif
               @if($donor->status == 'Ongoing')
               <td>
-              <a href ="{{url('admin/donate/'.$donor->id)}}">
+              <a href ="{{url('admin/donate/'.$donor->id).'/medical_history/retrieve'}}">
               <button type="button" value = "{{$donor->id}}" class="btn-s btn-info"><i class="fa fa-eye"></i></button>
               </a>
               <a href ="{{url('admin/donate/'.$donor->id.'/complete')}}">
@@ -84,7 +84,7 @@
               </td>
               @else
               <td>
-              <a href ="{{url('admin/donate/'.$donor->id.'/view')}}">
+              <a href ="{{url('admin/donate/'.$donor->id).'/medical_history/retrieve'}}">
               <button type="button" value = "{{$donor->id}}" class="btn-s btn-info"><i class="fa fa-eye"></i></button>
               </a>
               <button type="button" value = "{{$donor->id}}" class="btn-s btn-warning decl setRequest"><i class="fa fa-clock-o" aria-hidden="true"></i></button>
@@ -142,14 +142,14 @@
               <td>{{ $donor->status }} </td>
               @if($donor->status == "Ongoing")
               <td>
-              <a href ="{{url('admin/donate/'.$donor->id)}}">
+              <a href ="{{url('admin/donate/'.$donor->id).'/medical_history/retrieve'}}">
               <button type="button" value = "{{$donor->id}}" class="btn-s btn-info"><i class="fa fa-eye"></i></button>
               </a>
 
               </td>
               @else
               <td>
-              <a href ="{{url('admin/donate/'.$donor->id)}}">
+              <a href ="{{url('admin/donate/'.$donor->id).'/medical_history/retrieve'}}">
               <button type="button" value = "{{$donor->id}}" class="btn-s btn-info"><i class="fa fa-eye"></i></button>
               </a>
               <button type="button" value = "{{$donor->id}}" class="btn-s btn-warning decl setRequest"><i class="fa fa-clock-o" aria-hidden="true"></i></button>
@@ -187,19 +187,21 @@
             <td>{{$donor->id}}</td>
             <td>{{$donor->user->name()}}</td>
             <td>{{ $donor->user->bloodType}}</td>
-            @if($donor->appointment_time)
+            @if($donor->appointment_time != null)
             <td>VOLUNTARY</td>
             <td>n/a</td>
             <td>{{ $donor->appointment_time->format('F d Y')}}</td>
             <td>{{ $donor->appointment_time->format(' h:i A')}}</td>
             @else
             <td>RESPONSE</td>
-            <td>{{$donor->bloodRequest->request->id}}</td>
-            <td>{{ $donor->created_at->format('F d Y')}}</td>
+            <td>{{$donor->bloodrequest->blood_request_id}}</td>
+            <td>{{$donor->created_at->format('F d Y')}}</td>
             <td>ASAP</td>
             @endif
             <td>
-            <a href ="{{url('admin/donate/'.$donor->id)}}"><button type="button"  class="btn-s btn-info"><i class="fa fa-eye"></i></button></td>
+            <a href ="{{url('admin/donate/'.$donor->id.'/view')}}">
+              <button type="button" value = "{{$donor->id}}" class="btn-s btn-info"><i class="fa fa-eye"></i></button>
+            </a></td>
             </tr>
             @endif
           @endforeach
@@ -238,7 +240,7 @@
             <td>{{ $donor->appointment_time->format(' h:i A')}}</td>
             @else
             <td>RESPONSE</td>
-            <td>{{$donor->bloodRequest->request->id}}</td>
+            <td>{{$donor->bloodrequest->request->id}}</td>
             <td>{{ $donor->created_at->format('F d Y')}}</td>
             <td>ASAP</td>
             @endif

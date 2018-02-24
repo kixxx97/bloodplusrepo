@@ -48,8 +48,10 @@ class AuthenticationController extends Controller
         Log::create([
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'message' => 'You just joined BloodPlus',
-            'reference_type' => 'User',
-            'reference_id' => $user->id
+            'reference_type' => 'App\User',
+            'reference_id' => $user->id,
+            'initiated_type' => 'App\User',
+            'initiated_id' => $user->id
         ]);
         //follow red cross.
         $user->followedInstitutions()->attach('51B64E1');
@@ -67,8 +69,12 @@ class AuthenticationController extends Controller
     	$email = $request->input('email');
     	$password = $request->input('password');
     	if(Auth::guard('web')->attempt(['email' => $email, 'password' => $password])) {
-            $user = Auth::user()->load('notifications');
-            $message = array('user' => Auth::user(), 'status' => 200, 'message' => 'Successful Login');
+            $user = Auth::user();
+            
+            $message = array('user' => Auth::user(), 
+                'unreadNotif' => $count, 
+                'status' => 200, 
+                'message' => 'Successful Login');
 
             return response()->json($message);
         }
@@ -112,8 +118,23 @@ class AuthenticationController extends Controller
             'api_token' => base64_encode($data['email'].'kixgwapo'),
             'email_token' => base64_encode($data['email']),
             'address' => $address,
-            'verified' => 1
+            'verified' => 1,
         ]);
    	}
+    public function refreshToken(Request $request)
+    {
+        Auth::user()->update([
+            'device_token' => $request->input('device_token')
+        ]);
+        return response()->json(['device_id' => Auth::user()->device_token]);
+    }
 
+    public function getUnreadNotifications()
+    {
+        $count = count(Auth::user()->unReadNotifications);
+        return response()->json(array(
+            'unreadNotif' => $count,
+            'status' => '200',
+            'message' => 'Successfully retrieved unread notifications'));
+    }
 }

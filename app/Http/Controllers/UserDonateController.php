@@ -69,16 +69,17 @@ class UserDonateController extends Controller
             $query->where('status','Pending')->orWhere('status','Ongoing');
         })->with('institute')->first())
     	{
+            $now=Carbon::now()->format('H:i');
+            
     	$validation = Validator::make($request->all(), [
             'institution_id' => 'required',
             'donatedate' => 'required|date',
-            'donatetime' => 'required|date_format:H:i',
+            'donatetime' => 'required|date_format:"H:i"|after:'.$now,
             ]);
-
-        $validation->validate();
-        //'id','user_id','appointment_time','institution_id','status'
+ if ($validation->fails()) {
+    dd($validation->errors());
+}
         $appointment_time = new Carbon($request->input('donatedate').' '.$request->input('donatetime'));
-		// dd($appointment_time->format(' jS \\of F Y'));
         $donateRequest = DonateRequest::create([
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'institution_id' => $request->input('institution_id'),

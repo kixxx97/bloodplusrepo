@@ -12,9 +12,13 @@ use App\Notifications\BloodRequestNotification;
 use App\Post;
 use App\Log;
 use App\BloodType;
+use App\BloodRequestDetail;
 use \DB;
 use App\BloodInventory;
 use App\ScreenedBlood;
+use PDF;
+use App\MedicalHistory;
+
 
 
 class AdminDonateController extends Controller
@@ -23,18 +27,17 @@ class AdminDonateController extends Controller
     public function donate()
     {
    		$id = Auth::guard('web_admin')->user()->institute->id;
-
         $donor_requests = DonateRequest::where('institution_id',$id)->where(function($query) 
         {
-            $query->whereIn('status',['Ongoing','Pending'])->whereDate('appointment_time', '!=',DB::raw('CURDATE()'));
+            $query->whereIn('status',['Ongoing','Pending'])->whereDate('appointment_time', '>',DB::raw('CURDATE()'));
         })->orderBy('appointment_time')->get();
         // dd($donor_requests);
         $todayRequests = DonateRequest::where('institution_id',$id)->where(function ($query) {
             $query->whereIn('status',['Pending','Ongoing'])->whereNull('appointment_time');
-        })->orWhere(function ($query) {
-            $query->whereIn('status',['Pending','Ongoing'])->whereDate('appointment_time',DB::raw('CURDATE()'));
+        })->orWhere(function ($query) use ($id) {
+            $query->where('institution_id',$id);
+            $query->whereIn('status',['Pending','Ongoing'])->whereDate('appointment_time','<=',DB::raw('CURDATE()'));
         })->orderBy('appointment_time')->get();
-        // dd($todayRequests);
         $doneRequests = DonateRequest::where('institution_id',$id)->where('status','Done')->get();
         $cancelledRequests = DonateRequest::where('institution_id',$id)->where('status','Declined')->get();
 
@@ -56,14 +59,39 @@ class AdminDonateController extends Controller
 
         $updates = $donateRequest->updates;
         //change to carbon time 09:00 AM/PM;
-        $updates[] = "Changed blood donation appointment time to ".$appointmentTime->format('h:i A').".";
+        $updates[] = Auth::guard('web_admin')->user->name()." blood donation appointment time to ".$appointmentTime->format('h:i A').".";
         // change status to ongoing
         $donateRequest->update([
             'appointment_time' => $appointmentTime,
-            'status' => 'Ongoing',
-            'updates' => $updates]);
+            'status' => 'Pending',
+            'updates' => $updates,
+            'updated_at' => Carbon::now()->toDateTimeString(),
+            'flag' => 1,
+        ]);
         // dd($donateRequest);
-    	// notify user;
+        MedicalHistory::create([
+            'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+            'donate_request_id' => $donateRequest->id,
+            'status' => 'Pending' ,
+        ]);
+        Log::create([
+            'initiated_id' => Auth::guard('web_admin')->user()->id,
+            'initiated_type' => 'App\InstitutionAdmin',
+            'reference_type' => 'App\DonateRequest',
+            'reference_id' => $donateRequest->id,
+            'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+            'message' => 'Changed donation appointment time of donor'
+        ]);
+
+        $user = $donateRequest->user;
+        $class = array("class" => "App\DonateRequest",
+            "id" => $donateRequest->id,
+            "time" => Carbon::now()->toDateTimeString());
+        $usersent = array("name" => Auth::guard('web_admin')->user()->institute->name(),
+                "picture" => Auth::guard('web_admin')->user()->institute->picture());
+
+        $user->notify(new BloodRequestNotification($class,$usersent,'We have changed your appointment time to '.$appointmentTime->format('h:i A')));
+
     	return redirect('/admin/donate')->with('status','Sent notification to user for the change of time');
     }
 
@@ -77,9 +105,18 @@ class AdminDonateController extends Controller
         // dd($updates);
         $donateRequest->update([
             'status' => 'Ongoing',
-            'updates' => $updates]);
+            'updates' => $updates,
+            'updated_at' => Carbon::now()->toDateTimeString()]);
         $donateRequest->bloodrequest()->update([
-        'status' => 'Ongoing']);
+        'status' => 'Ongoing',
+        'updated_at' => Carbon::now()->toDateTimeString()
+        ]);
+
+        MedicalHistory::create([
+            'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+            'donate_request_id' => $donateRequest->id,
+            'status' => 'Pending' ,
+        ]);
         Log::create([
             'initiated_id' => Auth::guard('web_admin')->user()->id,
             'initiated_type' => 'App\InstitutionAdmin',
@@ -95,7 +132,8 @@ class AdminDonateController extends Controller
         $usersent = array("name" => Auth::guard('web_admin')->user()->institute->name(),
                 "picture" => Auth::guard('web_admin')->user()->institute->picture());
 
-        $user->notify(new BloodRequestNotification($class,$usersent,'We have just accepted your donation request. See you soon!'));
+        //message
+        $user->notify(new BloodRequestNotification($class,$usersent,'We have just accepted your donation request. See you at !'.$donateRequest->created_at->format('h:i A')));
 
         // dd($donateRequest->updates);
         return redirect('/admin/donate')->with('status','Successfully accepted request');
@@ -114,7 +152,8 @@ class AdminDonateController extends Controller
             $donateRequest->update([
                 'reason' => $request->input('message'),
                 'status' => 'Declined',
-                'updates' => $updates]);
+                'updates' => $updates,
+                'updated_at' => Carbon::now()->toDateTimeString()]);
             if($request->input('blacklist') == 'true')
             {
                 $blacklist = Blacklist::create([
@@ -147,18 +186,88 @@ class AdminDonateController extends Controller
         return redirect('/admin/donate')->with('status','Successfully declined the donation request');
 
     }
-    public function getDonationRequest(Request $request, DonateRequest $request)
+    public function getDonationRequest(DonateRequest $donate)
     {
         //show interview questions
 
         //terms and agreement
 
-        //
+        return view('admin.showdonation',compact('donate'));
     }
 
+    public function retrieveMedicalHistory(DonateRequest $donate)
+    {
+        $medicalHistory = $donate->medicalHistory;
+        $count=1;
+        return view('admin.showMedicalHistory',compact('donate','medicalHistory','count'));
+    }
+
+    public function remarkOnMedicalHistory(Request $request, DonateRequest $donate, MedicalHistory $medicalHistory)
+    {
+        $remark = $request->input('remark');
+        // dd($remark);
+        if($remark == 'true')
+        {
+            $medicalHistory->update([
+                'remarks' => 'Passed',
+                'status' => 'Done',
+                'updated_at' => Carbon::now()->toDateTimeString()
+            ]);
+            return redirect('/admin/donate/'.$donate->id.'/complete')->with('status','Succesffuly passed the donor\'s medical form');
+        }
+        else
+        {
+            $medicalHistory->update([
+                'remarks' => 'Failed',
+                'status' => 'Done',
+                'updated_at' => Carbon::now()->toDateTimeString()
+            ]);
+            return redirect('/admin/donate/')->with('status','Successfully remarked the donor\'s medical form');    
+        }
+    }
     public function completeDonateRequestView(Request $request, DonateRequest $donate)
     {
-        return view('admin.completedonation',compact('donate'));
+        if($donate->medicalHistory->remarks == 'Passed')
+        {
+            // dd($donate->bloodrequest);
+            $updates = array();
+            if($donate->bloodRequest)
+            {
+                $details = $donate->bloodRequest->request->details;
+                $units = $details->units;
+                $cat = $details->blood_category;
+                // dd($category);
+                $updates[] = "A requester need(s) ".$units." bag(s) of ".$cat; 
+            }
+            // dd($updates);
+            $sameBloodTypes = BloodRequestDetail::select(DB::raw('blood_category, SUM(units) as total_units'))
+            ->where('blood_type',$donate->user->bloodType)->where('status','Ongoing')->groupBy('blood_category')->get();
+
+            // dd($sameBloodTypes);
+            // $updates = null;
+            if(count($sameBloodTypes) != 0)
+            {
+
+                foreach($sameBloodTypes as $type)
+                {
+                    if($type->total_units > 1)
+                    {
+                        $needed = " are needed.";
+                        $bags = " bags of ";
+                    }
+                    else
+                    {
+                        $bags = " bag of ";
+                        $needed = " is needed.";
+                    }
+                    $updates[] = $type->total_units.$bags.$type->blood_category.$needed;
+                }
+            }
+            // dd($updates);
+            return view('admin.completedonation',compact('donate','updates'));
+        }
+                else
+        return redirect("/admin/donate/".$donate->id."/medical_history/retrieve");
     }
     public function completeDonateRequest(Request $request, DonateRequest $donate)
     {
@@ -174,22 +283,22 @@ class AdminDonateController extends Controller
         $donateRequest->update([
             'status' => 'Done',
             'updates' => $updates,
-            'updated_at' => Carbon::now()
+            'updated_at' => Carbon::now()->toDateTimeString()
             ]);
         $donateRequest->bloodrequest()->update([
         'status' => 'Done',
-        'updated_at' => Carbon::now()]);
+        'updated_at' => Carbon::now()->toDateTimeString()
+        ]);
 
         Post::create([
-                    'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
-                    'initiated_id' => $donateRequest->user->id,
-                    'initiated_type' =>  'App\User',
-                    'reference_type' => 'App\DonateRequest',
-                    'reference_id' => $donateRequest->id,
-                    'message' => 'I have just completed a voluntary blood donation. You should too!',
-                    'picture' => asset('assets/img/posts/blood-donation.jpg')
-                    ]);
-        // // dd($donateRequest);
+            'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+            'initiated_id' => $donateRequest->user->id,
+            'initiated_type' =>  'App\User',
+            'reference_type' => 'App\DonateRequest',
+            'reference_id' => $donateRequest->id,
+            'message' => 'I have just completed a voluntary blood donation. You should too!',
+            'picture' => asset('assets/img/posts/blood-donation.jpg')
+        ]);
         Log::create([
             'initiated_id' => $donateRequest->user->id,
             'initiated_type' => 'App\User',
@@ -230,19 +339,18 @@ class AdminDonateController extends Controller
 
         return redirect('/admin/bloodbags')->with('status','You successfully completed the blood donation. You can now begin to screen the blood bag');
 
-    }    //
-    public function acceptDonationRequestView(Request $request, DonateRequest $donate)
-    {
-        //if dli karon na donation, accept lng dayon 
-        //return view to admin/donate with notification
- 
-        return view('admin.acceptdonation',compact('donate'));
     }
 
-    public function acceptDonationRequest(Request $request, DonateRequest $donate)
+    public function showPdf(DonateRequest $donate)
     {
-
+        return view('pdf.donationpdf',compact('donate'));
     }
 
+    public function downloadPdf(DonateRequest $donate)
+    {
+        // return view('pdf.donationpdf',compact('donate'));
+
+        return PDF::loadview('pdf.donationpdf',compact('donate'))->setOptions(['dpi' => 96])->setPaper('folio','portrait')->stream('Donation Form.pdf');
+    }
 }
 

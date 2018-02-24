@@ -30,4 +30,9 @@ class BloodRequestDetail extends Model
     public function bloodCategory() {
     	return $this->bloodBank->category;
     }
+
+    public function releasedBlood()
+    {
+        return $this->hasMany('App\BloodInventory','id','br_detail_id');
+    }
 }

@@ -78,7 +78,7 @@
       <!-- Main row -->
       <div class="row">
         <!-- Left col -->
-        <section class="col-lg-8 connectedSortable">
+        <section class="col-lg-6 connectedSortable">
         <div class="box box-info">
             <div class="box-header with-border">
               <h3 class="box-title">Logs</h3>
@@ -120,7 +120,7 @@
         </section>
         <!-- /.Left col -->
         <!-- right col (We are only adding the ID to make the widgets sortable)-->
-        <section class="col-lg-4 connectedSortable">
+        <section class="col-lg-6 connectedSortable">
 
         
           <!-- Calendar -->
@@ -139,7 +139,7 @@
             </div>
             <!-- /.box-body -->
               <!-- /.row -->
-          </div>
+          </div>  
           <!-- /.box -->
 
         </section>
@@ -151,12 +151,34 @@
 @stop
 
 @section('css')
-	<link rel="stylesheet" href="{{ asset('theme/css/datepicker3.css') }}">
+  <link rel="stylesheet" href="{{ asset('theme/css/fullcalendar.min.css') }}">
   <link href="{{asset('theme/js/DataTables/media/css/dataTables.bootstrap.min.css')}}" rel ="stylesheet" type ="text/css">
   <link href="{{asset('theme/js/DataTables/media/css/jquery.dataTables.min.css')}}" rel ="stylesheet" type ="text/css">
 @stop
 
 @section('js')
-	<script src="{{ asset('theme/js/bootstrap-datepicker.js') }}"></script>
-	<script src="{{ asset('theme/js/dashboard.js') }}"></script>
+  <script src="{{ asset('theme/js/moment.min.js') }}"></script>
+	<script src="{{ asset('theme/js/fullcalendar.min.js') }}"></script>
+  <script>
+    var events = {!! $events !!};
+    console.log(events);
+    $('#calendar').fullCalendar({
+      header    : {
+        left  : 'prev,next,today',
+        center: 'title',
+        right : 'month,agendaWeek,agendaDay'
+      },
+
+      buttonText: {
+        today: 'today',
+        month: 'month',
+        week : 'week',
+        day  : 'day'
+      },
+      //Random default events
+      events    : events,
+      editable  : true,
+      droppable : true,
+    });
+  </script>
 @stop

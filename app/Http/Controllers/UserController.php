@@ -27,7 +27,8 @@ class UserController extends Controller
     {
         // dd($request->input());
         $params = array();
-        parse_str($request->input('data'), $params);
+        $params = $request->input();
+        // dd($params);
     	$name = $params['name'];
         $email = $params['email'];
         $subject = $params['subject'];
@@ -45,10 +46,11 @@ class UserController extends Controller
     		'subject' => $subject,
     		'message' => $message
     		]);
+
     	if($inquiry)
     	{
     		$message = array('status' => 200, 'message' => 'Successful');
-            Mail::to('bloodplusph@gmail.com')->send(new SendInquiry($inquiry));
+            Mail::to('allpeoplelies@gmail.com')->send(new SendInquiry($inquiry));
     	}
     	}catch(Exception $e)
     	{

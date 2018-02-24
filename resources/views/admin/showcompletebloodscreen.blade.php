@@ -2,13 +2,8 @@
 
 @section('title', 'Donate')
 
-@section('content') 
-@if (session('status'))
-  <div id = "alertmsg" style="display:none">
-    {{ session('status') }}
-  </div>
+@section('content')
 
-@endif
 
 <div class="row">
   <div class="col-xs-6 col-md-offset-3">
@@ -24,6 +19,10 @@
         <form role="form" method="POST" action="{{ url('/admin/bloodbags/'.$screenedBloodBags->id.'/stage') }}">
         <div class = "row">
           <div class ="col-md-4">
+          <label class="control-label">Serial Number:</label>
+          <input type ="text" class ="form-control text-underline" value ="{{$screenedBloodBags->serial_number}}" readonly/>
+          </div>
+          <div class ="col-md-4">
           <label class="control-label">Donor Name:</label>
           <input type ="text" class ="form-control text-underline" value ="{{$screenedBloodBags->donation->user->name()}}" readonly/>
           </div>
@@ -31,11 +30,43 @@
           <label class="control-label">Blood Type:</label>
           <input type ="text" class ="form-control text-underline" value ="{{$screenedBloodBags->donation->user->bloodType}}" readonly/>
           </div>
+          <div class ="col-md-2">
+          <label class="control-label">Blood Bag:</label>
+          <input type ="text" class ="form-control text-underline" value ="{{$screenedBloodBags->bag_type}}" readonly/>
+          </div>
+          
         </div>
         @else
         <form role="form" method="POST" action="{{ url('/admin/bloodbags/stage') }}">
-        {{$screenedBloodBags->donation->user->name()}}
-        {{$screenedBloodBags->donation->user->bloodType}}
+          @forelse($screenedBloodBags as $bloodBag)
+          <input type = "hidden" name ="bloodbag[]" value ="{{$bloodBag->id}}">
+          @empty
+          @endforelse
+          <div class = "row">
+          <div class ="col-md-4">
+          <label class="control-label">Serial Number:</label>
+          <select id ="changeDonor" class ="form-control">
+          @forelse($screenedBloodBags as $bloodBag)
+          <option value ="{{$bloodBag->id}}" data-name="{{$bloodBag->donation->user->name()}}" data-type="{{$bloodBag->donation->user->bloodType}}" data-brand="{{$bloodBag->bag_type}}">{{$bloodBag->serial_number}}</option>
+          @empty
+          @endforelse
+          </select>
+          </div>
+          <div class ="col-md-4">
+          <label  class="control-label">Donor Name:</label>
+          <input id ="donor_name" type ="text" class ="form-control text-underline" value ="{{$firstScreen->donation->user->name()}}" readonly/>
+          </div>
+          <div class ="col-md-2">
+          <label class="control-label">Blood Type:</label>
+          <input id ="donor_type" type ="text" class ="form-control text-underline" value ="{{$firstScreen->donation->user->bloodType}}" readonly/>
+          </div>
+          <div class ="col-md-2">
+          <label  class="control-label">Blood Bag:</label>
+          <input id ="donor_bag" type ="text" class ="form-control text-underline" value ="{{$firstScreen->bag_type}}" readonly/>
+          </div>
+          
+        </div>
+          
         @endif
         <br>
         <h4>Is the blood reactive?</h4>
@@ -126,10 +157,14 @@
             $(".diagnose").prop("selectedIndex", 0);
           }
         });
-
-        var message = document.getElementById('alertmsg').innerHTML;
-          if(message != '')
-          alert(message);
+        $("#changeDonor").change(function() {
+          var name = $(this).find(':selected').data('name');
+          var type = $(this).find(':selected').data('type');
+          var brand = $(this).find(':selected').data('brand');
+          $("#donor_name").val(name);
+          $("#donor_type").val(type);
+          $("#donor_bag").val(brand);
+        });
       });
     </script>
 @stop

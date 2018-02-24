@@ -9,8 +9,9 @@ class NotificationsController extends Controller
 {
     public function getNotifications()
     {
+        Auth::user()->unreadNotifications->markAsRead();
     	$tmpData = Auth::user()->notifications;
-    	$data = null;
+        $data = null;
             foreach($tmpData as $tmp)
             {
                 $tmpTmpData = $tmp->data;

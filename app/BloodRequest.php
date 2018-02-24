@@ -13,7 +13,8 @@ class BloodRequest extends Model
 	protected $dates = [
         'created_at',
         'updated_at',
-        'deleted_at'
+        'deleted_at',
+        'request_date'
     ];
 
     protected $casts = 
@@ -22,7 +23,7 @@ class BloodRequest extends Model
     ];
 
     protected $fillable = [
-        'id','patient_name','diagnose','institution_id','status','initiated_by','updates','reason'
+        'id','patient_name','diagnose','institution_id','status','initiated_by','updates','reason','request_date'
     ];
 
     public function institute() {

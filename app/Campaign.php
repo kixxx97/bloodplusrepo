@@ -15,6 +15,9 @@ class Campaign extends Model
 	protected $casts = [
 	'address' => 'array'
 	];
+
+	//blood drive or not.
+
 	protected $fillable = [
 	'id','name','address','description','date_start','date_end','status','picture','initiated_by'
 	];
@@ -28,4 +31,10 @@ class Campaign extends Model
 	{
 		return $this->hasMany('App\Attendance','campaign_id','id');
 	}
+
+	public function attendanceUserModel()
+	{
+		return $this->belongsToMany('App\User','attendances','campaign_id','user_id')->withPivot('status')->withTimeStamps()->using('App\ReactionPost');
+	}
+
 }

@@ -23,7 +23,7 @@
         <form role="form" method="POST" action="{{ url('/admin/donate/'.$donate->id.'/complete') }}">
         <div class = "row">
           <div class ="col-md-4">
-          <label class="control-label">Donor Name:</label>
+          <label cl`ass="control-label">Donor Name:</label>
           <input type ="text" class ="form-control text-underline" value ="{{$donate->user->name()}}" readonly/>
           </div>
           <div class ="col-md-2">
@@ -38,66 +38,40 @@
         <br> 
         <label class="control-label">Blood Bag Brand:</label>
         <div class="radio">
+          @foreach(Auth::guard('web_admin')->user()->institute->settings['bloodbags'] as $key => $bloodbag)
           <label style ="margin-left: 1%;margin-right: 1%">
-          @if(old('bag_type') == 'karmi')
-          <input type="radio" name="bag_type" value="karmi" checked required>
-            Karmi
+          @if(old('bag_type') == $key)
+          <input type="radio" class ="blood_bag_brand" name="bag_type" value="{{$key}}" checked required>
+            {{$key}}
           @else
-          <input type="radio" name="bag_type" value="karmi" required>
-            Karmi
+          <input type="radio" class ="blood_bag_brand" name="bag_type" value="{{$key}}" required>
+            {{$key}}
           @endif
           </label>
-          <label style ="margin-left: 1%;margin-right: 1%">
-          @if(old('bag_type') =='terumo')
-            <input type="radio" name="bag_type" checked  value="terumo">
-            Terumo
-          @else
-          <input type="radio" name="bag_type" value="terumo">
-            Terumo
-          @endif
-          </label>
+          @endforeach
         </div>
         <label class="control-label">Blood Bag Component:</label>
         <div class="radio">
-          <label style ="margin-left: 1%;margin-right: 1%">
-          @if(old('bag_component') == '450s')
-            <input type="radio" name="bag_component" value="450s" checked required>
-            450s
-          @else
-            <input type="radio" name="bag_component" value="450s" required required>
-            450s
-          @endif
-          </label>
-          <label style ="margin-left: 1%;margin-right: 1%">
-          @if(old('bag_component') == '450d')
-            <input type="radio" name="bag_component"  checked value="450d">
-            450d
-          @else
-            <input type="radio" name="bag_component"  value="450d">
-            450d
-          @endif
-          </label>
-          <label style ="margin-left: 1%;margin-right: 1%">
-          @if(old('bag_component') == '450t')
-            <input type="radio" name="bag_component"  checked value="450t">
-            450t
-            @else
-            <input type="radio" name="bag_component"  value="450t">
-            450t
-            @endif
-          </label>
-          <label style ="margin-left: 1%;margin-right: 1%">
-          @if(old('bag_component') == '450q')
-            <input type="radio" name="bag_component"  checked value="450q">
-            450q
-            @else
-            <input type="radio" name="bag_component"  value="450q">
-            450q
-            @endif
-          </label>
+          <!-- listen sa pag ilis sa blood bag brand, nya ajax(kuhaon ang ilahang na settan nga component para kani nga brand sa bag) then if wala i disable ang radio lang. -->
+          <?php
+          $bloodbags = Auth::guard('web_admin')->user()->institute->settings['bloodbags'];
+          $components = collect($bloodbags)->first();
+          ?>
+            @foreach($components as $component)
+              <label>
+              @if(old('bag_component') == $component)
+              <input type="radio" class="bag_component" name="bag_component" value="{{$component}}" checked required>
+              {{$component}}
+              @else
+              <input type="radio" class="bag_component" name="bag_component" value="{{$component}}" required>
+              {{$component}}
+              @endif
+              </label>
+            @endforeach
+          
         </div>
         <div class ="row">
-          <div class ="col-md-2">
+          <div class ="col-md-4">
           <label class="control-label">Serial Number:</label>
           <input type ="number" class="form-control text-underline" name ="serial_number" placeholder="Input Here" />
           </div>
@@ -108,7 +82,17 @@
             </span>
           @endif
         {!! csrf_field() !!}
+        <div class="form-group">
+          <br>
+          <label class="control-label">Needed:</label>
+          <div id ="updates">
+            @forelse($updates as $update)
+              <li>{{$update}}</li>
+            @empty
 
+            @endforelse
+          </div>
+        </div>
         <center>
         <input type="submit" value="Complete" class="btn btn-danger">
         <button type="button" data-dismiss="modal" class="btn btn-danger">Close</button>
@@ -123,9 +107,37 @@
 @section('js')
 <script>
   $(document).ready(function() {
+
+      $(".blood_bag_brand").on("click", function () {
+      var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
+        $.ajax({
+        method: "post",
+        url: "/bloodplusrepo/public/admin/bloodbags/components",
+        data: {'_token': CSRF_TOKEN,
+               'bloodbag': $(this).val()
+               },
+        success: function(response) {
+          $.each($(".bag_component"), function(index,value) 
+          {
+            if(response.includes($(this).val()))
+            {
+              $(this).attr("disabled",false);  
+            }
+            else
+            {
+              $(this).attr("disabled",true);  
+            }
+          });
+        },
+        error: function() {
+            alert('An error occured.');
+        }
+        });
+      });
+        console.log($(this).val());
+      });
       var message = document.getElementById('alertmsg').innerHTML;
       if(message != '')
       alert(message);
-  });
 </script>
 @stop

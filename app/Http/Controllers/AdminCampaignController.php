@@ -15,12 +15,18 @@ use App\Notifications\BloodRequestNotification;
 class AdminCampaignController extends Controller
 {
     public function campaign() {
-        $pendingCampaigns = Campaign::with('initiated.institute')->where('status','Pending')->get();
-        // dd($campaigns);
+        $pendingCampaigns = Campaign::with('initiated.institute')->whereHas('initiated.institute', function ($query) {
+            $query->where('id',Auth::guard('web_admin')->user()->institute->id);
+        })->where('status','Pending')->get();
+        // dd($pendingCampaigns);
         
-        $ongoingCampaigns = Campaign::with('initiated.institute')->where('status','Ongoing')->orderBy('date_start','asc')->get();
+        $ongoingCampaigns = Campaign::with('initiated.institute')->whereHas('initiated.institute', function ($query) {
+            $query->where('id',Auth::guard('web_admin')->user()->institute->id);
+        })->where('status','Ongoing')->orderBy('date_start','asc')->get();
 
-        $doneCampaigns = Campaign::with('initiated.institute')->where('status','Done')->orderBy('date_start','desc')->get();
+        $doneCampaigns = Campaign::with('initiated.institute')->whereHas('initiated.institute', function ($query) {
+            $query->where('id',Auth::guard('web_admin')->user()->institute->id);
+        })->where('status','Done')->orderBy('date_start','desc')->get();
 
     	return view('admin.campaign',compact('pendingCampaigns','ongoingCampaigns','doneCampaigns'));
     }
@@ -50,7 +56,8 @@ class AdminCampaignController extends Controller
         if($request->file('campaign_avatar'))
         {
         $ext = \File::extension($request->file('campaign_avatar')->getClientOriginalName()); 
-        $path = $request->file('campaign_avatar')->storeAs('campaigns',$id.'.'.$ext); 
+        $path = $request->file('campaign_avatar')->storeAs('campaigns',$id.'.'.$ext);
+        // dd($path);
         $picture = asset('/storage/'.$path);
 
         }
@@ -112,12 +119,30 @@ class AdminCampaignController extends Controller
 
     public function viewCampaign(Campaign $campaign)
     {
-        // dd($campaign);
-
+        
         return view('admin.showCampaign',compact('campaign'));
     }
     public function showCreate()
     {
         return view('admin.createcampaign');
     }
+
+    protected function generateQrCode(Campaign $campaign)
+    {
+        $id = $campaign->id;
+    $attendance = $campaign->attendance;
+    $attendanceIds = array();
+    foreach($attendance as $attendance)
+    {
+            $attendanceIds[] = $attendance->user_id;
+    }
+    $data = json_encode([
+        'campaignId' => $id,
+        'attendanceIds' => $attendanceIds]);
+    $qr = base64_encode(QrCode::format('png')->size(100)->generate($data));
+
+    return $qr;
+    }
+
+
 }

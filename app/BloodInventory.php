@@ -10,7 +10,7 @@ class BloodInventory extends Model
 	public $incrementing = false;
 
 	protected $fillable = [
-   	 'id','screened_blood_id','blood_type_id','expiry_date','status'
+   	 'id','screened_blood_id','blood_type_id','status'
    	 ];
 
    public function bloodType()

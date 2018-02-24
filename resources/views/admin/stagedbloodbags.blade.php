@@ -15,10 +15,13 @@
       <div class="box-header">
         <h3 class="box-title">Blood Bags Screening</h3>
       </div>
+      <form method ="get" action ="{{url('/admin/bloodbags/stage')}}">
+        {{ csrf_field() }}
       <div class="box-body table-responsive">
        <table id = "pending_screening" class="table table-hover ">
           <thead>
             <tr>
+              <th><input type ="checkbox" id ="checkAll"></th>
               <th>Serial Number</th>
               <th>Donor</th>
               <th>Blood Type</th>  
@@ -32,6 +35,7 @@
           <tbody>
             @forelse($bloodBags as $screenedBlood)
               <tr>
+                <td><input type="checkbox" class = "bloodbags" name ="bloodbags[]" value ="{{$screenedBlood->id}}"></td>
                 <td>{{$screenedBlood->serial_number}}</td>
                 <td>{{$screenedBlood->donation->user->name()}}</td>
                 <td>{{$screenedBlood->donation->user->bloodType}}</td>
@@ -40,7 +44,7 @@
                 <td>{{$screenedBlood->componentsToString()}}</td>
                 <td>{{$screenedBlood->created_at}}</td>
                 <td>
-                  <a href ="{{url('admin/donate/'.$screenedBlood->donation->id)}}">
+                  <a href ="{{url('admin/donate/'.$screenedBlood->donation->id.'/view')}}">
                   <button type="button" value = "{{$screenedBlood->donation->id}}" class="btn-s btn-info"><i class="fa fa-eye"></i></button>
                   </a>
                   <a href ="{{url('admin/bloodbags/'.$screenedBlood->id.'/stage')}}">
@@ -50,10 +54,11 @@
               </tr>
             @empty
             @endforelse
-            
           </tbody>
         </table>
       </div>
+      <input type ="submit" value ="Complete Screening"/>
+    </form>
     </div>
 </div>
 </div>

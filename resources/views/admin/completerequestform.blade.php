@@ -49,19 +49,35 @@
                 @endforelse
               </select>
               <div class="input-group-btn">
+                    @if(count($availBloods) == 0)
+                    <button type="button" data-count = "{{$bloodRequest->details->units}}" class="btn btn-danger addBtn" disabled>Add</button>  
+                    @else
                   <button type="button" data-count = "{{$bloodRequest->details->units}}" class="btn btn-danger addBtn">Add</button>
+                  @endif
               </div>
             </div>
           </div>
         </div>
         <form id ="completeRequestForm" role="form" method="POST" action="{{ url('/admin/request/'.$bloodRequest->id.'/complete') }}">
         {!! csrf_field() !!}
+
         <br>
         <label class="control-label">Blood Type Requested:</label>
         <ul id ="bloodList">
+          @forelse($selectedBloods as $selectedBlood)
+          <li>
+              Blood Bag #{{$selectedBlood->screenedBlood->serial_number}}
+          </li>
+          <input type ="hidden" name ="serial[]" class="serial-bags" value ="{{$selectedBlood->id}}">
+          @empty
+          @endforelse
         </ul>
         <center>
+        @if(count($selectedBloods) != 0)
+        <input type="submit" id = "submitBrBtn" value="Complete" class="btn btn-danger">
+        @else
         <input type="submit" id = "submitBrBtn" value="Complete" class="btn btn-danger" disabled>
+        @endif
         <a href ="{{url('admin/request')}}">
         <button type="button" data-dismiss="modal" class="btn btn-danger">Cancel</button>
         </a>

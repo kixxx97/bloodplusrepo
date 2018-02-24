@@ -10,10 +10,21 @@ use App\DonateRequest;
 use Carbon\Carbon;
 use App\BloodRequest;
 use App\Log;
+use App\User;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use App\Institution;
+
 
 class PostController extends Controller
 {
-    
+    public function paginate($items, $perPage = 5, $page = null, $options = [])
+    {
+        $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+        $items = $items instanceof Collection ? $items : Collection::make($items);
+        return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
+    }
     public function getAllPost()
     {
         $tmpPosts = Auth::user()->posts;
@@ -51,6 +62,7 @@ class PostController extends Controller
         //return pinned post
         //else 
         //pinned post is null
+        
         $sortedTmpPosts = $tmpPosts->sortByDesc('created_at');
     	foreach($sortedTmpPosts as $tmpPost) 
     	{
@@ -80,7 +92,7 @@ class PostController extends Controller
     		$counter++;
     			
     	}
-        
+        // dd($posts);
         $pinnedPost = null;
         $onGoingDonation = DonateRequest::where('initiated_by',Auth::user()->id)->whereIn('status',['Pending','Ongoing'])->get();
         
@@ -176,5 +188,74 @@ class PostController extends Controller
             'message' => 'Retrieved all posts'
             ));
         }
+    }
+    public function getUserPosts($user)
+    {
+        try{
+            $tmpModel = User::findOrFail($user);
+            $tmpPosts = $tmpModel->posts;
+            $class = 'User';
+        }catch(\Exception $e)
+        {
+            try{
+            $tmpModel = Institution::findOrFail($user);
+            $tmpPosts = collect();
+            $class = 'Institution';
+            foreach($tmpModel->admins as $admin)
+            {
+                if(count($admin->posts) == 0)
+                {
+
+                }
+                else{
+                $temp = $admin->posts;
+                $tmpPosts = $tmpPosts->union($temp);
+                // dd($temp);
+                }
+            }
+            }
+            catch(\Exception $e)
+            {
+                return response()->json([
+            'status' => 'Error Error',
+            'message' => 'User does not exist']);
+            }
+        }
+        if(count($tmpPosts) == 0)
+            return response()->json(null);
+        $posts = array();
+        $counter = 0;
+        foreach($tmpPosts as $tmpPost)
+        {
+            $posts[$counter]['id'] = $tmpPost->id;
+            $posts[$counter]['message'] = $tmpPost->message;
+            $posts[$counter]['picture'] = $tmpPost->picture;
+            $posts[$counter]['created_at'] = $tmpPost->created_at;
+            $posts[$counter]['class'] = substr($tmpPost->reference_type,4);
+            $posts[$counter]['class_id'] = $tmpPost->reference_id;
+            $initiated = $tmpPost->initiated;
+            $posts[$counter]['initiated']['id'] = $initiated->id;
+            $posts[$counter]['initiated']['name'] =  $initiated->name();
+            $posts[$counter]['initiated']['picture'] = $initiated->picture();
+            $posts[$counter]['reference']['id'] = $tmpPost->reference->id;
+            $posts[$counter]['reference']['type'] = $tmpPost->reference_type;
+            $posts[$counter]['likes'] = count($tmpPost->likes);
+            $posts[$counter]['comments'] = count($tmpPost->comments);
+            $posts[$counter]['liked'] = false;
+            foreach($tmpPost->likes as $tmpLike)
+            {
+                if($tmpLike->pivot->initiated_by == Auth::user()->id)
+                {
+                    $posts[$counter]['liked'] = true;
+                    break;
+                }
+            }
+            $counter++;
+        }
+        // foreach($tmpPosts as $post)
+        // {
+
+        // }
+        return response()->json($posts);       
     }              
 }

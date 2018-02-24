@@ -5,6 +5,7 @@ namespace App;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Carbon\Carbon;
+use App\Institution;
 
 class User extends Authenticatable
 {
@@ -28,7 +29,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'id','fname','lname','mi', 'email', 'password','status','gender','bloodType','dob',    'contactinfo','email_token','api_token','verified','banner','picture','address'
+        'id','fname','lname','mi', 'email', 'password','status','gender','bloodType','dob',    'contactinfo','email_token','api_token','verified','banner','picture','address','device_token'
     ];
 
     /**
@@ -85,5 +86,33 @@ class User extends Authenticatable
     public function super()
     {
         return $this->hasOne('App\God', 'user_id','id');
+    }
+
+    public function routeNotificationForGcm()
+    {
+        // return "eZ5tgf8gBOg:APA91bEFXtQXINMUNJtiBWRhqEPpWODOZzGLspzBzQYQutux5LGHhYm-J7dUS69xcmkeKxTGkhSQB2RXTQcIAxUtGML4HFLSK6bbiOEegAbUu2alwb28Z18ZvQyl0CWqXmdTJSVh5ajA";
+        if($this->device_token == null)
+        {
+            return " ";
+        }
+        return $this->device_token;
+    }
+
+    public function getAgeAttribute()
+    {
+        return $this->dob->age;
+    }
+    public function ageEligibility()
+    {
+        if($this->age > 16)
+        {
+            return true;
+        }
+        else
+            return false;
+    }
+    public function followIfNotFollowed(Institution $institution)
+    {
+
     }
 }

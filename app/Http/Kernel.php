@@ -65,6 +65,7 @@ class Kernel extends HttpKernel
         'verified' => \App\Http\Middleware\Verified::class,
         'preAuth' => \App\Http\Middleware\PreAuth::class,
         'userResolver' => \App\Http\Middleware\UserResolver::class,
-        'bpadmin' => \App\Http\Middleware\BpAdminAuth::class
+        'bpadmin' => \App\Http\Middleware\BpAdminAuth::class,
+        'accepted' => \App\Http\Middleware\Accepted::class
     ];
 }

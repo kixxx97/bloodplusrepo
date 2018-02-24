@@ -13,7 +13,11 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        Commands\InitiateMedicalHistoryForm::class,
+        Commands\NotifyUsersForCampaigns::class,
+        Commands\UpdateCampaignToDone::class,
+        Commands\UpdateCampaignToOngoing::class,
+        Commands\FlushBlood::class
     ];
 
     /**
@@ -26,6 +30,28 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')
         //          ->hourly();
+        // $schedule->command('campaignToDone')
+        //          ->twiceDaily(1, 13);
+        // $schedule->command('campaignToOngoing')
+        //          ->twiceDaily(1, 13);
+        // $schedule->command('initiateMedicalForm')
+        //          ->hourly();
+        // $schedule->command('notifyUsersCampaign')
+        //          ->twiceDaily(1, 13);
+        // $schedule->command("flushBlood")
+        //          ->twiceDaily(1, 13);
+                 
+        $schedule->command('campaignToDone')
+                 ->everyMinute();
+        $schedule->command('campaignToOngoing')
+                 ->everyMinute();
+        $schedule->command('initiateMedicalForm')
+                 ->everyMinute();
+        $schedule->command('notifyUsersCampaign')
+                 ->everyMinute();
+        $schedule->command("flushBlood")
+                 ->everyMinute();
+
     }
 
     /**

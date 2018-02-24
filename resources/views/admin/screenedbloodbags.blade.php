@@ -12,10 +12,12 @@
 
 <div class="row">
   <div class="col-xs-12">
-    <div class="box box-info  ">
+    <div class="box box-info ">
       <div class="box-header">
         <h3 class="box-title">Screen Blood Bags</h3>
       </div>
+      <form method ="get" action ="{{url('/admin/bloodbags/screen')}}">
+        {{ csrf_field() }}
       <div class="box-body table-responsive">
        <table id = "pending_screening" class="table table-hover ">
           <thead>
@@ -33,7 +35,7 @@
           <tbody>
             @forelse($pendingScreenedBloods as $screenedBlood)
               <tr>
-                <td><input type="checkbox" name ="bloodbags" value ="{{$screenedBlood->id}}"></td>
+                <td><input type="checkbox" class ="bloodbags" name ="bloodbags[]" value ="{{$screenedBlood->id}}" data-type="{{$screenedBlood->bag_component}}"></td>
                 <td>{{$screenedBlood->serial_number}}</td>
                 <td>{{$screenedBlood->donation->user->name()}}</td>
                 <td>{{$screenedBlood->donation->user->bloodType}}</td>
@@ -41,7 +43,7 @@
                 <td>{{$screenedBlood->bag_component}}</td>
                 <td>{{$screenedBlood->created_at}}</td>
                 <td>
-                  <a href ="{{url('admin/donate/'.$screenedBlood->donation->id)}}">
+                  <a href ="{{url('admin/donate/'.$screenedBlood->donation->id.'/view')}}">
                   <button type="button" value = "{{$screenedBlood->donation->id}}" class="btn-s btn-info"><i class="fa fa-eye"></i></button>
                   </a>
                   @if($screenedBlood->bag_component == '450s')
@@ -59,7 +61,8 @@
           </tbody>
         </table>
       </div>
-
+      <input type ="submit" value ="Start Screening"/>
+    </form>
   	</div>
 </div>
 </div>

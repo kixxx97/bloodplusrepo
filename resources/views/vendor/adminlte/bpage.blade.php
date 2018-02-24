@@ -80,19 +80,19 @@
         </script>
         <form action = "{{ url ('/logout') }}" style="display:none" id = "logout-form" method="post">
             {{ csrf_field() }}
+
         </form> 
         @if(config('adminlte.layout') != 'top-nav')
         <!-- Left side column. contains the logo and sidebar -->
         <aside class="main-sidebar">
-            <div class="user-panel">
-                <div class="pull-left image">
-                    <img src="{{Auth::user()->picture()}} " class ="img-circle" alt="User Image"></span>
-                    </div>
-                    <div class="pull-left info">
-                    <p><u>{{Auth::user()->fname}}</u><br></p>
-                    </div>
-                    <div class="pull-left info">
-                    </div>
+            <div class="user-panel" style="white-space: normal;"    >
+                <div class="media" style="margin-top: -10px; padding-bottom: 10px;">
+                  <div class="media-left">
+                    <img src="{{Auth::user()->picture()}} " class ="img-circle"  onError="this.onerror=null;this.src='{{ asset('assets/img/bloodplus/Logo2.png') }}" class="media-object" style="width:40px">
+                  </div>
+                  <div class="media-body">
+                    <p>{{Auth::user()->name()}}</p>
+                  </div>
                 </div>
             <hr>
             <!-- sidebar: style can be found in sidebar.less -->
@@ -153,6 +153,12 @@
 
 @section('adminlte_js')
     <script src="{{ asset('vendor/adminlte/dist/js/app.min.js') }}"></script>
+    <script>
+        $("#logout").on('click',function (){
+            $("#logout-form").submit();
+        })
+    </script>
+
     @stack('js')
     @yield('js')
 @stop

@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
+use App\Notifications\AdminResetPasswordNotification;
+
+
 class InstitutionAdmin extends Authenticatable
 {
 
@@ -34,7 +37,7 @@ class InstitutionAdmin extends Authenticatable
 
     public function picture()
     {
-        return asset('assets/img/321.png');
+        return $this->institute->picture();
     }
     public function name()
     {
@@ -43,5 +46,21 @@ class InstitutionAdmin extends Authenticatable
 
     public function posts() {
         return $this->morphMany('App\Post','initiated');
+    }
+
+    public function campaigns() {
+        return $this->hasMany('App\Campaign','initiated_by','id');
+    }
+    public function sendPasswordResetNotification($token)
+    {
+      $this->notify(new SellerResetPasswordNotification($token));
+    }
+    public function routeNotificationForGcm()
+    {
+        if($this->device_token == null)
+        {
+            return " ";
+        }
+        return $this->device_token;
     }
 }

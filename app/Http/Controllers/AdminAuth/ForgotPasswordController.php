@@ -16,4 +16,9 @@ class ForgotPasswordController extends Controller
     {
     	return view('admin.passwords.email');
     }
+
+    public function broker()
+    {
+    	return Password::broker('admins');
+    }
 }

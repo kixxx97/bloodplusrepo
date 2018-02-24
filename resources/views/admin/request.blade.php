@@ -15,7 +15,7 @@
 @section('content') 
 @if (session('status'))
   <div id = "alertmsg" style="display:none">
-    {{ session('status') }}
+  &nbsp{{ session('status') }}
   </div>
 @endif
     <!-- Main content -->
@@ -61,7 +61,11 @@
               <td> 0{{$request->user->contactinfo }}</td>
               <td>{{ $request->details->blood_category.' '.$request->details->blood_type }} </td>
               <td>{{ $request->details->units }} </td>
-              <td>{{ $request->created_at->format(' jS \\of F Y')}} </td>
+              @if($request->request_date == null)
+              <td></td>
+              @else
+              <td>{{ $request->request_date->format('F d Y h:i A')}} </td>
+              @endif
               <td><button type="button" value = "{{$request->id}}" class="btn-s btn-info decl viewBloodRequest" data-toggle="modal" data-target="#viewModal"><i class="fa fa-eye"></i></button>
             <button type="button" value = "{{$request->id}}" data-type = "request" class="btn-s btn-success decl br acceptRequest"><i class="fa fa-check" aria-hidden="true"></i></button>
             <button type="button" value = "{{$request->id}}" class="btn-s btn-danger decl declineRequest"><i class="fa fa-times" aria-hidden="true"></i></button></td>
@@ -98,15 +102,18 @@
               <td> {{$request->user->fname.' '.$request->user->lname}} </td>
               <td>{{ $request->details->blood_category.' '.$request->details->blood_type }} </td>
               <td>{{ $request->details->units }} </td>
-              <td> {{ count($request->details->bloodType->nonReactive())}} </td>
+              <td> {{ count($request->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id))}} </td>
               <td>{{count($request->donors)}}</td>
-              <td>{{ $request->created_at->format(' jS \\of F Y')}} </td>
-
+              @if($request->request_date == null)
+              <td></td>
+              @else
+              <td>{{ $request->request_date->format('F d Y h:i A')}} </td>
+              @endif
              <td><button type="button" value = "{{$request->id}}" class="btn-s btn-info decl viewBloodRequest" data-toggle="modal" data-target="#viewModal"><i class="fa fa-eye"></i></button>
-            @if(count($request->details->bloodType->nonReactive()) >= 5 || count($request->details->bloodType->nonReactive()) != 0)
+            @if(count($request->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id)) >= 5 || count($request->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id)) != 0)
              <button type="button" value = "{{$request->id}}" class="btn-s btn-warning claimRequest"><i class="fa fa-gift" aria-hidden="true"></i></button>
             @endif
-            @if(count($request->details->bloodType->nonReactive()) >= $request->details->units)
+            @if(count($request->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id)) >= $request->details->units)
             <button type="button" value = "{{$request->id}}" class="btn-s btn-success something"><i class="fa fa-check" aria-hidden="true"></i></button>
             @endif
             </td>
@@ -140,7 +147,11 @@
               <td> {{$request->user->fname.' '.$request->user->lname}} </td>  
               <td>{{ $request->details->blood_type }} </td>
               <td>{{ $request->details->units }} </td>
-              <td>{{ $request->created_at->format(' jS \\of F Y')}} </td>
+              @if($request->request_date == null)
+              <td></td>
+              @else
+              <td>{{ $request->request_date->format('F d Y h:i A')}} </td>
+              @endif
               <td><button type="button" value = "{{$request->id}}" class="btn-s btn-info decl viewBloodRequest" data-toggle="modal" data-target="#viewModal"><i class="fa fa-eye"></i></button>
               </td>
             </tr>
@@ -174,7 +185,11 @@
               <td> {{$request->user->fname.' '.$request->user->lname}} </td>
               <td>{{ $request->details->blood_type }} </td>
               <td>{{ $request->details->units }} </td>
-              <td>{{ $request->created_at->format(' jS \\of F Y')}} </td>
+              @if($request->request_date == null)
+              <td></td>
+              @else
+              <td>{{ $request->request_date->format('F d Y h:i A')}} </td>
+              @endif
               <td><button type="button" value = "{{$request->id}}" class="btn-s btn-info decl viewBloodRequest" data-toggle="modal" data-target="#viewModal"><i class="fa fa-eye" aria-hidden="true"></i></button>
             </td>
             </tr>
@@ -430,3 +445,5 @@
       });
     </script>
 @stop
+
+

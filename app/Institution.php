@@ -10,11 +10,29 @@ class Institution extends Model
 	public $incrementing = false;
 	
     protected $casts = [
-    'address' => 'array'
+    'address' => 'array',
+    'settings' => 'array',
+    'credentials' => 'array',
+    'links' => 'array'
     ];
-    
+    /*$settings = [
+        'patient-directed' => 'true/false',
+        'bloodbags' => [
+        'Karmi' => [ '450s','450d','450t','450q'],
+        'Terumo' => [ '450s','450d','450t']
+            ],
+        'bloodtype_available' [
+            'Whole Blood','Packed RBC','Platelets','Fresh Frozen Plasma','Cryoprecipitate'
+            ]
+        ],
+    ];
+    $credentials = [
+        'pic1' =>
+        'pic2' =>  
+    ];
+    */
     protected $fillable = [
-        'id', 'institution','address','credentials','status'
+        'id', 'institution','address','credentials','status','settings','links','logo','banner','about_us','contact','email'
     ];
 
     public function requests() {
@@ -42,12 +60,43 @@ class Institution extends Model
     }
     public function banner()
     {
-        return asset('assets/img/slides/bb2.jpg');
+        return $this->banner;
     }
     public function picture()
     {
-        return asset('assets/img/321.png');
+        return $this->logo;
     }
 
-    
+    public function getCampaignsAttribute()
+    {
+     $tmpCampaigns = collect();
+        foreach($this->admins as $admin)
+        {
+            foreach($admin->campaigns as $campaign)
+            {
+                $tmpCampaigns->push($campaign);
+            }
+        }
+        $sortedCampaigns = $tmpCampaigns->sortBy('date_start');
+        if(count($sortedCampaigns) == 0)
+
+            return response()->json(array(
+                'campaigns' => null,
+                'message' => 'We have no initiated events or campaigns yet',
+                'status' => 'Successful'));
+
+        $campaign = array();
+        $counter = 0;
+        foreach($sortedCampaigns as $tmpCampaign)
+        {
+            $campaign[$counter]['id'] = $tmpCampaign->id;
+            $campaign[$counter]['name'] = $tmpCampaign->name;
+            $campaign[$counter]['picture'] = $tmpCampaign->picture;
+            $campaign[$counter]['date_start'] = $tmpCampaign->date_start->toDateTimeString();
+            $counter++;
+        }
+        $sortedCampaigns = $tmpCampaigns->sortBy('created_at');
+        return $campaign;
+    }
+
 }

@@ -10,6 +10,9 @@ use App\Attendance;
 use Auth;
 use Carbon\Carbon;
 use App\Log;
+use App\Attendance;
+use App\User;
+use App\Institution;
 use App\Notifications\BloodRequestNotification;
 
 
@@ -51,7 +54,15 @@ class CampaignController extends Controller
             "time" => Carbon::now()->toDateTimeString());
         $user = array("name" => Auth::user()->name(),
                 "picture" => Auth::user()->picture());
-        $message = Auth::user()->name().' joined your campaign!';
+        $message = Auth::user()->name().' is going to attend your campaign!';
+        Log::create([   
+            'initiated_id' => Auth::user()->id,
+            'initiated_type' => 'App\User',
+            'reference_type' => 'App\Campaign',
+            'reference_id' => $campaign->id,
+            'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+           'message' => 'You are going to attend '.$campaign->name."."
+            ]);
         foreach($admins as $admin)  
         {
             $admin->notify(new BloodRequestNotification($class,$user,$message));
@@ -108,6 +119,23 @@ class CampaignController extends Controller
  	}
  	//history campaigns
 
- 	
+    public function remarkAttendee(Campaign $campaign)
+    {
 
+        $attendee = Attendance::where('user_id',Auth::user()->id)->where('campaign_id',$campaign->id)->first()->update([
+            'remarks' => 'Attended',
+            'updated_at' => Carbon::now()->toDateTimeString()
+        ]);
+
+        return response()->json(array(
+        'status' => 'Successful',
+        'message' => 'Successfully marked as present'));
+    }
+    public function getInstitutionCampaigns(Institution $institution)
+    {
+        $campaigns = $institution->campaigns;
+        return response()->json(array('campaigns' => $campaigns,
+            'status' => 'Successful',
+            'message' => 'Successfully retrieved campaigns initiated by the institution'));
+    }
 }

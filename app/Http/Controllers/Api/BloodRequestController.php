@@ -49,13 +49,16 @@ class BloodRequestController extends Controller
         //         $query->where('name',$name);
         //     })->where('category',$request->input('bloodCategory'))->first();
         // dd($bloodBag);
+        $request_date = new Carbon($request->input('request_date').' '.$request->input('request_time'));
+
         $bloodRequest = BloodRequest::create([
             'id' => $str = strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'patient_name' => ucwords($request->input('pname')),
             'institution_id' => $request->input('institution_id'),
             'diagnose' => $request->input('diagnose'),
             'status' => 'Pending',
-            'initiated_by' => Auth::user()->id
+            'initiated_by' => Auth::user()->id,
+            'request_date' => $request_date
             ]);
         // dd($bloodRequest->id);
 
@@ -82,7 +85,7 @@ class BloodRequestController extends Controller
             'initiated_id' => Auth::user()->id,
             'initiated_type' => 'App\User',
             'reference_id' => $bloodRequest->id,
-            'referece_type' => 'App\BloodRequest',
+            'reference_type' => 'App\BloodRequest',
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'message' => 'You just requested for blood'
             ]);
@@ -167,6 +170,7 @@ class BloodRequestController extends Controller
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'initiated_by' => Auth::user()->id,
             'institution_id' => $request->institution_id,
+            'appointment_time' => $request->request_date,
             'status' => 'Pending']);
         $brDonor = BloodRequestDonor::create([
             'blood_request_id' => $request->id,

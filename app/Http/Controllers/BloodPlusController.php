@@ -11,7 +11,6 @@ use App\BloodRequestDetail;
 use Illuminate\Support\Facades\Validator;
 use Auth;
 use App\BloodType;
-
 use App\User;
 use App\DonateRequest;
 use App\Log;
@@ -88,7 +87,7 @@ class BloodPlusController extends Controller
     $pinnedPost = null;
         
         $onGoingDonation = DonateRequest::where('initiated_by',Auth::user()->id)->whereIn('status',['Pending','Ongoing'])->get();
-        if(count($onGoingDonation) == 1)
+            if(count($onGoingDonation) == 1)
         {
 
             return view('user.home',compact('posts','pinnedPost'));   
@@ -395,7 +394,7 @@ class BloodPlusController extends Controller
             'donate_request_id' => $donateRequest->id,
             'status' => 'Pending'
             ]);
-
+        
         
             //notify
             $admins = InstitutionAdmin::where('institution_id',$request->institution_id)->get();

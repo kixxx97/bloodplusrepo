@@ -34,23 +34,23 @@
         <div class="col-md-3">
           <div class="card">
               <div class ="card-header">
-              <button class="btn btn-block btn-danger btn-lg">{{$bloodType->name}}</button>
+              <button class="clickable-row btn btn-block btn-danger btn-lg" data-href="{{url('/admin/inventory/bloodtype/'.$bloodType->id)}}">{{$bloodType->name}}</button>
               </div>
               <center>
               <div class="card-body">
               </div>
               </center>
               <div class ="table-responsive">
-              <table class ="table">
+              <table class ="table table-hover">
               <thead>
               <th>Category</th>
               <th>Quantity</th>
               </thead>
               <tbody>
               @foreach($bloodType->bloodType as $bloodBag)
-              <tr>
+              <tr class='clickable-row' data-href="{{url('/admin/inventory/bloodcategory/'.$bloodBag->id)}}">
               <td> {{$bloodBag->category}} </td>
-            <td align="center"> {{count($bloodBag->nonReactive())}} </td>
+              <td align="center"> {{count($bloodBag->nonReactive(Auth::guard('web_admin')->user()->institute->id))}} </td>
               </tr>
               @endforeach
               </tbody>
@@ -84,15 +84,10 @@
 
     <script> 
       $(document).ready(function() {
-
+        $(".clickable-row").click(function() {
+          window.open($(this).data("href"));
+        });
       });
-    </script>
-    <script>
-    $(document).ready(function() {
-        var message = document.getElementById('alertmsg').innerHTML;
-        if(message != '')
-        alert(message);
-    });
     </script>
 
 @stop

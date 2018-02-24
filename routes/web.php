@@ -7,17 +7,18 @@ use App\Mail\EmailVerification;
 use Illuminate\Http\Request;
 use App\User;
 use App\BloodRequest;
+use App\Campaign;
 use App\BloodRequestDetail;
 use App\Post;
 use App\Notifications\BloodRequestNotification;
 use Carbon\Carbon;
-// use FCM;
-use LaravelFCM\Message\OptionsBuilder;
-use LaravelFCM\Message\PayloadDataBuilder;
-use LaravelFCM\Message\PayloadNotificationBuilder;
+use App\Notifications\CampaignNotification;
 use App\BloodType;
 use App\BloodCategory;
 use App\BloodInventory;
+// use Borla\Chikka\Chikka;
+use App\DonateRequest;
+use App\Notifications\GeneralNotification;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -28,8 +29,151 @@ use App\BloodInventory;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::get('/abcdefg',function (){
+Route::get('/test', function() {
 
+// $success = Storage::allDirectories();
+// dd($success);
+    // $campaign = Campaign::find('BC2A0D7');
+    // $id = '04300BD';
+    // $campaign->load(['attendance' => function($query) use ($id){
+    //         $query->where('user_id', $id)->first();
+    //     }]);
+    // $campaign->attendance->first()->update([
+    //     'remarks' => 'Attended'
+    // ]);
+
+    // $id = $campaign->id;
+    // $attendance = $campaign->attendance;
+    // $attendanceIds = array();
+    // foreach($attendance as $attendance)
+    // {
+    //         $attendanceIds[] = $attendance->user_id;
+    // }
+    // $data = json_encode([
+    //     'campaignId' => $id,
+    //     'attendanceIds' => $attendanceIds]); 
+    // echo "<img src=\"data:image/png;base64,". base64_encode(QrCode::format('png')->size(100)->generate($data))  ."\">";
+
+    // dd(Carbon::now()->toDateTimeStrinwg());
+    // dd(Carbon::now()->format('h:i'));
+    dd(User::first()->ageEligibility());
+    $campaign = Campaign::first();
+            $testCampaign = [
+                'class' => 'App\Campaign',
+                'id' => $campaign->id,
+                'time' => Carbon::now()->toDateTimeString()
+            ];
+            $userSent = [
+                'name' => $campaign->initiated->name(),
+                'picture' => $campaign->initiated->picture()
+            ];
+            $message = $campaign->name." is happening today at ".$campaign->date_start->format('h:i A').". See you there!";
+    $user = User::find('4101D4B');
+    $resp = $user->notify(new CampaignNotification(
+        $testCampaign,$userSent,$message,'BloodPlusNotification'));
+    dd($resp);
+
+
+    // $ongoingCampaigns = Campaign::where('status','Ongoing')->whereDate('date_end','<=',Carbon::yesterday())->update([
+    //     'status' => 'Done',
+    //     'updated_at' => Carbon::now()->toDateTimeString()
+    //     ]);
+
+    // $ongoingCampaigns = Campaign::where('status','Ongoing')->whereDate('date_end','<=',Carbon::yesterday())->get();
+    //     // Campaign::where('status','Ongoing')->whereDate('date_end','<=',Carbon::yesterday())->update([
+    //     // 'status' => 'Done',
+    //     // 'updated_at' => Carbon::now()->toDateTimeString()
+    //     // ]);
+
+    //     foreach($ongoingCampaigns as $campaign)
+    //     {
+    //         $testCampaign = [
+    //             'class' => 'App\Campaign',
+    //             'id' => $campaign->id,
+    //             'time' => Carbon::now()->toDateTimeString()
+    //         ];
+    //         $user = [
+    //             'name' => $campaign->initiated->name(),
+    //             'picture' => $campaign->initiated->picture()
+    //         ];
+    //         $message = "Our campaign is officialy done!";
+    //         $attendance = $campaign->attendance;
+    //         foreach($attendance as $attendee)
+    //         {
+    //             // dd($attendee);
+    //             $attendee->user->notify(new CampaignNotificataion($testCampaign,$user,$message));
+    //         }
+    //         $institute = $campaign->initiated->institute;
+    //         $admins = $institute->admins;
+    //         foreach($admins as $admin)
+    //         {
+    //             $admin->notify(new CampaignNotification($testCampaign,$user,$message));
+    //         }
+    //     }
+
+        // $campaign = Campaign::find('23DAD09');
+        // $followers = $campaign->initiated->institute->followers;
+        // $attending = $campaign->attendanceUserModel;
+        // $leftBubble = $followers->diff($attending);
+        // $intersection = $followers->intersect($attending);
+
+        // foreach($leftBubble as $attendee)
+        // {
+        //     // $user = [
+        //     // "name" => $attendee->user->name(),
+        //     // "picture" => $attendee->user->picture()
+        //     // ];
+        //     echo "<pre>";
+        //     print_r($attendee->id);
+        //     echo "</pre>";
+        // }
+        // foreach($intersection as $potentialAttendee)
+        // {
+        //     echo "<pre>";
+        //     print_r($potentialAttendee->name());
+        //     echo "</pre>";
+        // }
+        // dd($intersection);
+
+    // $config = [
+    // 'shortcode'=> '29290 7547',
+    // 'client_id'=> '0bcb983964a12761e452349222f8f8182c68ba464c55566acd5287965daa1976',
+    // 'secret_key'=> 'dfa0555634d4525d05bd72b08ab58fce42cb9b01bb6a3b0456e6b3733df45558',
+    // ];
+
+    // // Create Chikka object
+    // // $chikka = new Chikka($config);
+    // $mobile = '09254649699';
+
+    // // Send SMS
+    // dd($response);
+});
+Route::get('/abcdefg',function (){
+    // dd(Auth::user()->super);
+    // dd(asset("assets/img/321.png"));
+
+    // dd(Auth::guard('web_admin')->user()->institute->settings['bloodtype_available']);
+    // $settings = [
+    //     'patient-directed' => 'false',
+    //     'bloodbags' => 
+    //         [
+    //     'Karmi' => [ '450s','450d','450t','450q'],
+    //     'Terumo' => [ '450s','450d','450t']
+    //         ],
+    //     'bloodtype_available' => 
+    //         [
+    //         'Whole Blood','Packed RBC','Platelets','Fresh Frozen Plasma','Cryoprecipitate'
+    //         ]
+    //     ];
+    //     //'Whole Blood','Packed RBC','Washed RBC','Platelets','Fresh Frozen Plasma','Cryoprecipitate';
+    // echo "<pre>";
+    // echo json_encode($settings);
+    // echo "</pre>";
+    // Campaign::where('status','Pending')->whereDate('date_start',Carbon::today())->update([
+    //     'status' => 'Ongoing']);
+
+    // Campaign::where('status','Ongoing')->whereDate('date_end',Carbon::yesterday())->update([
+    //     'status' => 'Done']);
     // dd(Auth::user()->with(['followedInstitutions' => function ($query) {
         // $query->where('created_at')
     // }]));
@@ -49,7 +193,6 @@ Route::get('/abcdefg',function (){
     // $exitCode = Artisan::call('queue:work');
     // $bloodType = BloodType::first();
     // dd($bloodType->bloodCategory);
-    // $exitCode = Artisan::call('cache:clear');
     // dd(Carbon::now()->timezone('Asia/Manila')->toDateTimeString());
     // $optionBuilder = new OptionsBuilder();
     // $optionBuilder->setTimeToLive(60*20);
@@ -82,7 +225,27 @@ Route::get('/abcdefg',function (){
 
     // $exitCode = Artisan::call('db:seed');
     // $exitCode = Artisan::call('config:cache');
+    // $exitCode = Artisan::call('queue:work');
+    // $exitCode = Artisan::call('migrate');
     // $exitCode = Artisan::call('storage:link');
+    // $exitCode = Artisan::call('initiateMedicalForm');
+    // $exitCode = Artisan::call('campaignToOngoing');
+    // $exitCode = Artisan::call('campaignToDone');
+
+    // $donateRequestTime = DonateRequest::find('64A7B2B')->appointment_time;
+    // dd($donateRequestTime->diffInHours(Carbon::now(),false));
+});
+Route::get('command/campaignToDone', function() {
+    $exitCode = Artisan::call('campaignToDone');
+});
+Route::get('command/campaignToOngoing', function() {
+    $exitCode = Artisan::call('campaignToOngoing');
+});
+Route::get('command/flushBlood', function() {
+    $exitCode = Artisan::call('flushBlood');
+});
+Route::get('command/initiateMedicalForm', function() {
+    $exitCode = Artisan::call('initiateMedicalForm');
 });
 Route::get('/', function () {
     //return all blooddrequest na ongoing. orderby priority paginate 5
@@ -170,7 +333,6 @@ Route::group(['middleware' => ['auth']], function() {
     });
 });
 
-// Route::get('/test','AdminDonateController@setAppointment');
 Route::get('/upload', function() {
     return view('upload');
 }); 
@@ -183,12 +345,12 @@ Route::post('/upload', function(Request $request) {
     return view('/showupload',compact('path'));
 });
 
-// Route::get('/somethinggood', 'BloodPlusController@test');
 Route::get('/verifyemail/{token}', 'BloodPlusController@verify');
-// Route::get('/test','AdminController@test');
 
 Route::prefix('admin')->group(function () {
-
+    Route::get('/waitingscreen', function() {
+        return view('admin.waitingscreen');
+    });
 	Route::group(['middleware' => 'admin_guest'], function() {
     Route::get('/register', 'AdminAuth\RegisterController@show');
     Route::post('/register', 'AdminAuth\RegisterController@register');
@@ -201,14 +363,18 @@ Route::prefix('admin')->group(function () {
 
     //todos
     Route::get('/password/reset','AdminAuth\ForgotPasswordController@showLinkRequestForm');
-    Route::post('/password/email','AdminAuth\ForgotPasswordController@sendResetLinkEmail');
+    Route::post('/password/email',function(Request $request) {
+        dd($request->input());
+    });
     Route::get('/password/reset/{token}','AdminAuth\ResetPasswordController@showResetForm');
     Route::post('/password/reset','AdminAuth\ResetPasswordController@reset');
 	});
 	
     Route::group(['middleware' => 'admin_auth'], function() {
+        Route::post('/logout', 'AdminAuth\LoginController@logout');
+    Route::group(['middleware' => 'accepted'], function() {
 
-    Route::post('/logout', 'AdminAuth\LoginController@logout');
+    Route::get('/settings','AdminController@settings');
     Route::get('/', 'AdminController@index');
     Route::get('/request','AdminController@request');
     Route::get('/donors','AdminController@donors');
@@ -230,21 +396,27 @@ Route::prefix('admin')->group(function () {
     Route::get('/donate','AdminDonateController@donate');
     Route::post('/donate/accept','AdminDonateController@acceptRequest');
     Route::post('/donate/delete','AdminDonateController@declineRequest');
-    Route::post('/donate/settime','AdminDonateController@setAppointment');
-    Route::get('/campaign','AdminCampaignController@campaign');
-    Route::post('/campaign/create','AdminCampaignController@createCampaign');
-    Route::get('/campaign/create','AdminCampaignController@showCreate');
-    Route::get('/campaign/{campaign}','AdminCampaignController@viewCampaign');  
+    Route::post('/donate/settime','AdminDonateController@setAppointment');  
     Route::get('/donate/{donate}/complete','AdminDonateController@completeDonateRequestView');
+    Route::get('/donate/{donate}/medical_history/retrieve','AdminDonateController@retrieveMedicalHistory');
+    Route::post('/donate/{donate}/{medicalHistory}/remark','AdminDonateController@remarkOnMedicalHistory');
     Route::post('/donate/{donate}/complete','AdminDonateController@completeDonateRequest');
     Route::get('/donate/{donate}/view','AdminDonateController@getDonationRequest');
+    Route::get('/donate/{donate}/view/pdf','AdminDonateController@showPdf');
+    Route::post('/donate/{donate}/view/pdf','AdminDonateController@downloadPdf');
     // Route::get('/donate/{donate}/accept','AdminDonateController@acceptDonationRequestView');
     // Route::post('/donate/{donate}/accept','AdminDonateController@acceptRequest');
-
+     Route::get('/campaign','AdminCampaignController@campaign');
+    Route::post('/campaign/create','AdminCampaignController@createCampaign');
+    Route::get('/campaign/create','AdminCampaignController@showCreate');
+    Route::get('/campaign/{campaign}','AdminCampaignController@viewCampaign');
 
     Route::post('/request/{request}/bloodbag','AdminInventoryController@getBloodBagStatus');
     Route::get('/inventory','AdminInventoryController@index');
+
     Route::get('/bloodbags','AdminInventoryController@showBloodbags');
+
+    Route::post('/bloodbags/components','AdminInventoryController@getBloodBagComponents');
 
     Route::get('/bloodbags/{bloodbag}/screen','AdminInventoryController@showSingleStatustoStagedView');
     Route::post('/bloodbags/{bloodbag}/screen','AdminInventoryController@setSingleStatusToStaged');
@@ -260,17 +432,21 @@ Route::prefix('admin')->group(function () {
     Route::get('/bloodbags/stage','AdminInventoryController@showCompleteScreenedBlood');
     Route::post('/bloodbags/stage','AdminInventoryController@completeScreenedBlood');
 
+    Route::get('/inventory/bloodtype/{bloodType}','AdminInventoryController@showBloodType');
+    Route::get('/inventory/bloodcategory/{bloodCategory}','AdminInventoryController@showBloodCategory');
+    });
     });
 });
 
 
 Route::group(['prefix' => 'bpadmin', 'middleware' => 'bpadmin'], function () 
 {
-    Route::get('/', function () {
-        return view('bpadmin.index');
-    });
+    Route::get('/', 'Super\SuperAdminController@index');
     Route::get('/institutions','Super\InstitutionsController@getInstitutions');
 
+    Route::post('/institution/accept','Super\InstitutionsController@acceptInstitution');
+    Route::post('/institution/delete','Super\InstitutionsController@declineInstitution');
+    Route::get('/institution/{institution}','Super\InstitutionsController@getInstitution');
     //connected bloodbanks/status etc
     // Route::get('/','Super\SuperAdminController@index');
     //add bloodbank (with their credentials and then add 1 account)

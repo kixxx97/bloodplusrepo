@@ -19,7 +19,7 @@ class DonateRequest extends Model
     ];
 
 	protected $fillable = [
-		'id','initiated_by','appointment_time','institution_id','status','updates','reason'
+		'id','initiated_by','appointment_time','institution_id','status','updates','reason','flag'
 	];
 
 	public function user() {
@@ -31,5 +31,8 @@ class DonateRequest extends Model
 	}
 	public function institute() {
     	return $this->belongsTo('App\Institution','institution_id');
+    }
+    public function medicalHistory() {
+    	return $this->hasOne('App\MedicalHistory','donate_request_id','id');
     }
 }

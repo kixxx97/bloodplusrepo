@@ -12,4 +12,8 @@ class God extends Model
    	protected $fillable = [
    		'id','user_id','status'
    	];
+
+   	public function logs() {
+        return $this->hasMany('App\Log','initiated_id','id');
+    }
 }

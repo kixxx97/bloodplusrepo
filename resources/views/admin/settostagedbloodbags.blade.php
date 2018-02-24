@@ -26,123 +26,75 @@
           <label class="control-label">Donor Name:</label>
           <input type ="text" class ="form-control text-underline" value ="{{$bloodbag->donation->user->name()}}" readonly/>
           </div>
-          <div class ="col-md-2">
-          <label class="control-label">Blood Type:</label>
-          <input type ="text" class ="form-control text-underline" value ="{{$bloodbag->donation->user->bloodType}}" readonly/>
-          </div>
+          
           <div class ="col-md-3">
           <label class="control-label">Date Extracted:</label>
           <input type ="text" class ="form-control text-underline" value ="{{$bloodbag->donation->updated_at->format('F d Y')}}" readonly/>
           </div>
-        </div>
-        @else
-        <form role="form" method="POST" action="{{ url('/admin/bloodbags/screen') }}">
-        <div class = "row">
-          <div class ="col-md-4">
-          <label class="control-label">Donor Name:</label>
-          <input type ="text" class ="form-control text-underline" value ="{{$bloodbag->donation->user->name()}}" readonly/>
-          </div>
           <div class ="col-md-2">
           <label class="control-label">Blood Type:</label>
           <input type ="text" class ="form-control text-underline" value ="{{$bloodbag->donation->user->bloodType}}" readonly/>
           </div>
           <div class ="col-md-2">
-          <label class="control-label">Date Extracted:</label>
-          <input type ="text" class ="form-control text-underline" value ="{{$bloodbag->donation->updated_at->format('F d Y')}}" readonly/>
+          <label class="control-label">Blood Bag:</label>
+          <input type ="text" class ="form-control text-underline" value ="{{$bloodbag->bag_type}}" readonly/>
           </div>
+        </div>
+        @else
+        <form role="form" method="POST" action="{{ url('/admin/bloodbags/screen') }}">
+          @forelse($bloodbags as $bag)
+          <input type = "hidden" name ="bloodbag[]" value ="{{$bag->id}}">
+          @empty
+          @endforelse
+          <div class = "row">
+          <div class ="col-md-3">
+          <label class="control-label">Serial Number:</label>
+          <select id ="changeDonor" class ="form-control">
+          @forelse($bloodbags as $bag)
+          <option value ="{{$bag->id}}" data-name="{{$bag->donation->user->name()}}" data-type="{{$bag->donation->user->bloodType}}" data-brand="{{$bag->bag_type}}">{{$bag->serial_number}}</option>
+          @empty
+          @endforelse
+          </select>
+          </div>
+          <div class ="col-md-4">
+          <label  class="control-label">Donor Name:</label>
+          <input id ="donor_name" type ="text" class ="form-control text-underline" value ="{{$bloodbag->donation->user->name()}}" readonly/>
+          </div>
+          <div class ="col-md-2">
+          <label class="control-label">Blood Type:</label>
+          <input id ="donor_type" type ="text" class ="form-control text-underline" value ="{{$bloodbag->donation->user->bloodType}}" readonly/>
+          </div>
+          <div class ="col-md-3">
+          <label  class="control-label">Blood Bag:</label>
+          <input id ="donor_bag" type ="text" class ="form-control text-underline" value ="{{$bloodbag->bag_type.' '.$bloodbag->bag_component}}" readonly/>
+          </div>
+          
         </div>
         @endif
         <br>
-        <!-- if 450d pili siya -->
-<!--         <form action="/action_page.php">
-          <input type="checkbox" name="vehicle" value="Bike"> I have a bike<br>
-          <input type="checkbox" name="vehicle" value="Car" checked> I have a car<br>
-          <input type="submit" value="Submit">
-        </form> -->
-<!-- 
-        <select>
-          <option value="volvo">Volvo</option>
-          <option value="saab">Saab</option>
-          <option value="mercedes">Mercedes</option>
-          <option value="audi">Audi</option>
-        </select> -->
-
-
         <div class="row"> 
         <div class="radio component col-md-12">
         <h4>1st Blood Component</h4>
           <select name="component[1]" class="form-control first-comp">
           <option value='' disabled hidden selected> Select Component</option>
-            <option value="Packed RBC">Packed RBC</option>
-            <option value="Washed RBC">Washed RBC</option>
-            <option value="Platelet">Platelet</option><!-- 
-            <option value="Cryoprecipitate">Cryoprecipitate</option>
-            <option value="resh Frozen Plasma">Fresh Frozen Plasma</option> -->
+            @foreach($components as $component)
+            @if($component != 'Whole Blood')
+            <option value="{{$component}}">{{$component}}</option>
+            @endif
+            @endforeach
           </select> 
         </div>
-
-
-
-<!--         <div class="radio component1">
-  
-          <label>
-            <input type="combobox z" name="component[1] first-comp"  value="Packed RBC">
-            Packed RBC
-          </label>
-          <label>
-            <input type="checkbox" name="component[1] first-comp" value="Washed RBC" >
-            Washed RBC
-          </label>
-          <label>
-            <input type="checkbox" name="component[1] first-comp" value="Platelet" >
-            Platelet
-          </label>
-          <label>
-            <input type="checkbox" name="component[1] first-comp" value="Cryoprecipitate" >
-            Cryoprecipitate
-          </label>
-          <label>
-            <input type="checkbox" name="component[1] first-comp" value="Fresh Frozen Plasma" >
-            Fresh Frozen Plasma
-          </label>
-        </div>
- -->
-
-
         <div class="radio component col-md-12">
         <h4>2nd Blood Component</h4>
         <select name="component[2]" class="form-control  second-comp">
             <option value='' disabled hidden selected> Select Component</option>
-            <option value="Packed RBC">Packed RBC</option>
-            <option value="Washed RBC">Washed RBC</option>
-            <option value="Platelet">Platelet</option><!-- 
-            <option value="Cryoprecipitate">Cryoprecipitate</option>
-            <option value="resh Frozen Plasma">Fresh Frozen Plasma</option> -->
+            @foreach($components as $component)
+            @if($component != 'Whole Blood')
+            <option value="{{$component}}">{{$component}}</option>
+            @endif
+            @endforeach
         </select>
         </div>
-
-        <!-- <div class="radio component2">
-          <label>
-            <input type="radio" name="component[2] second-comp"  value="Packed RBC">
-            Packed RBC
-          </label>
-          <label>
-            <input type="radio" name="component[2] second-comp" value="Washed RBC" >
-            Washed RBC
-          </label>
-          <label>
-            <input type="radio" name="component[2] second-comp" value="Platelet" >
-            Platelet
-          </label>
-          <label>
-            <input type="radio" name="component[2] second-comp" value="Cryoprecipitate" >
-            Cryoprecipitate
-          </label>
-          <label>
-            <input type="radio" name="component[2] second-comp" value="Fresh Frozen Plasma" >
-            Fresh Frozen Plasma
-          </label>
-        </div> -->
 
         @if($bloodbag->bag_component == '450t' || $bloodbag->bag_component == '450q')
 
@@ -150,45 +102,26 @@
           <h4>3rd Blood Component</h4>
           <select name="component[3] third-comp" class="form-control">
           <option value='' disabled hidden selected> Select Component</option>
-              <option value="Cryoprecipitate">Cryoprecipitate</option>
-              <option value="Fresh Frozen Plasma">Fresh Frozen Plasma</option>
+              @foreach($components as $component)
+              @if($component != 'Whole Blood')
+              <option value="{{$component}}">{{$component}}</option>
+              @endif
+              @endforeach
           </select> 
           </div>
 
-
-        <!-- <h4>3rd Blood Component</h4>
-        <div class="radio component3">
-          <label>
-            <input type="radio" name="component[3] third_comp"  value="Packed RBC">
-            Packed RBC
-          </label>
-          <label>
-            <input type="radio" name="component[3] third_comp" value="Washed RBC" >
-            Washed RBC
-          </label>
-          <label>
-            <input type="radio" name="component[3] third_comp" value="Platelet" >
-            Platelet
-          </label>
-          <label>
-            <input type="radio" name="component[3] third_comp" value="Cryoprecipitate" >
-            Cryoprecipitate
-          </label>
-          <label>
-            <input type="radio" name="component[3] third_comp" value="Fresh Frozen Plasma" >
-            Fresh Frozen Plasma
-          </label>
-        </div> -->
         @endif
         @if($bloodbag->bag_component == '450q')
-
 
         <div class="radio component col-md-12">
           <h4>4th Blood Component</h4>
           <select name="component[4] third-comp" class="form-control">
           <option value='' disabled hidden selected> Select Component</option>
-              <option value="Cryoprecipitate">Cryoprecipitate</option>
-              <option value="Fresh Frozen Plasma">Fresh Frozen Plasma</option>
+              @foreach($components as $component)
+              @if($component != 'Whole Blood')
+              <option value="{{$component}}">{{$component}}</option>
+              @endif
+              @endforeach
           </select> <br> 
           </div>
         </div>

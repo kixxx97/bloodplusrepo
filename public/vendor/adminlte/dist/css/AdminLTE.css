@@ -4511,6 +4511,11 @@ textarea:focus {
 {
   background-color: #dd4b39 !important;
 }
+.bg-darkred
+{
+  background-color: red !important;
+  color: #fff !important;
+}
 .modal-danger .modal-header,
 .modal-danger .modal-footer,
 .modal-danger .modal-body  {
@@ -5223,3 +5228,12 @@ input[readonly] {
         }
     }            
     </style>
+.info {
+  overflow-wrap: break-word !important;
+}
+.overfloww {
+  overflow-wrap: break-word !important;
+}
+
+.table-hover tbody tr
+ { cursor: pointer; }

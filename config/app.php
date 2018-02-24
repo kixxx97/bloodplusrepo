@@ -43,7 +43,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Application URL
+    | Application `
     |--------------------------------------------------------------------------
     |
     | This URL is used by the console to properly generate URLs when using
@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'bloodplus.usjr.edu.ph'),
+    'url' => env('APP_URL',''),
 
     /*
     |--------------------------------------------------------------------------
@@ -167,6 +167,11 @@ return [
         LaravelFCM\FCMServiceProvider::class,
         // Barryvdh\Cors\ServiceProvider::class,
         JeroenNoten\LaravelAdminLte\ServiceProvider::class,
+        Barryvdh\DomPDF\ServiceProvider::class,
+        NotificationChannels\Gcm\GcmServiceProvider::class,
+        'Borla\Chikka\Service',
+        SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
+
         /*
          * Package Service Providers...
          */
@@ -232,7 +237,11 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
         'FCM'      => LaravelFCM\Facades\FCM::class,
         'FCMGroup' => LaravelFCM\Facades\FCMGroup::class, // Optional
-        'PushNotification' => 'Davibennun\LaravelPushNotification\Facades\PushNotification'
+        'PushNotification' => 'Davibennun\LaravelPushNotification\Facades\PushNotification',
+        'PDF' => Barryvdh\DomPDF\Facade::class,
+        'Chikka'=> 'Borla\Chikka\Support\Facades\Chikka',
+        'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class
+
     ],
 
 ];

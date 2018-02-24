@@ -96,6 +96,8 @@ class SocialController extends Controller
         {
             try{
             $user = Institution::findOrFail($user);
+            dd($user);
+            // return view('user.viewprofile',compact('user'));
             }
             catch(\Exception $e)
             {

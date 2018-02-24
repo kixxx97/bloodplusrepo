@@ -93,10 +93,23 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="contact" class="col-md-4 control-label">Contact Number</label>
+                            <label for="contact" class="col-md-4 control-label">Mobile Number</label>
 
                             <div class="col-md-6">
                                 <input id="number" type="number" class="form-control" name="contact" value="{{ old('contact') }}" placeholder ="+63">
+
+                                @if ($errors->has('contact'))
+                                    <span class="help-block">
+                                        <strong>Invalid contact number</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact" class="col-md-4 control-label">Telephone Number</label>
+
+                            <div class="col-md-6">
+                                <input id="number" type="number" class="form-control" name="telephone" value="{{ old('telephone') }}" placeholder ="">
 
                                 @if ($errors->has('contact'))
                                     <span class="help-block">
@@ -117,7 +130,8 @@
                                     </span>
                                 @endif
                             </div>
-                        </div>  
+                        </div>
+
                         <div class ="form-group">
                         <label for="Address" class="col-md-4 control-label">Address</label>
                         <div class="col-md-6">

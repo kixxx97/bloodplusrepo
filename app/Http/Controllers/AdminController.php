@@ -31,11 +31,26 @@ class AdminController extends Controller
         // dd($nxt->toDateTimeString());
         $newlyDonors = count(Auth::guard('web_admin')->user()->institute->newlyFollowedInstitutions);
         // dd($newlyDonors);
+        $tmpEvents = Campaign::with('initiated.institute')->whereHas('initiated.institute', function ($query) {
+            $query->where('id',Auth::guard('web_admin')->user()->institute->id);
+        })->get();
+        $events = array();
+        $counter = 0;
+        foreach($tmpEvents as $tmp)
+        {
+            $events[$counter]['title'] = $tmp->name;
+            $events[$counter]['start'] = $tmp->date_start->toDateTimeString();
+            $events[$counter]['end'] = $tmp->date_end->toDateTimeString();
+            $events[$counter]['backgroundColor'] = "#f56954";
+            $events[$counter]['borderColor'] = "#f56954";
+            $counter++;
+        }
+        $events = json_encode($events);
         $bloodDonors = count(User::where('status','active')->get());
         $campaignCount = count(Campaign::where('status','Done')->get());
         $logs = Log::where('initiated_id',Auth::guard('web_admin')->user()->id)->orderBy('created_at','desc')->paginate(10);
 
-    	return view('admin.dashboard',compact('logs','campaignCount','newlyDonors','nxt'));
+    	return view('admin.dashboard',compact('logs','campaignCount','newlyDonors','nxt','events'));
     }
 
     public function request() {
@@ -137,9 +152,13 @@ class AdminController extends Controller
         $updates[] = 'The request has been accepted and notified to eligible donors.';    
         $bloodRequest->update([
             'status' => 'Ongoing',
-            'updates' => $updates
+            'updates' => $updates,
+            'updated_at' => Carbon::now()->toDateTimeString()
             ]);
-
+        $bloodRequest->details()->update([
+            'status' => 'Ongoing',
+            'updated_at' => Carbon::now()->toDateTimeString()
+        ]);
         if($bloodRequest->details->blood_type == 'AB+')
             $picture = asset('assets/img/bloodtype/ab+.jpg');
         else if($bloodRequest->details->blood_type == 'AB-')
@@ -175,15 +194,15 @@ class AdminController extends Controller
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'message' => Auth::guard('web_admin')->user()->institute->name().' just accepted a blood request!'
             ]);
-        // dd('12345');
+
         $user = $bloodRequest->user;
-        $class = array("class" => "App\BloodRequest",
+        $class = array("class" => "App\CallToBloodRequest",
             "id" => $bloodRequest->id,
             "time" => $bloodRequest->created_at->toDateTimeString());
         $usersent = array("name" => Auth::guard('web_admin')->user()->institute->name(),
                 "picture" => Auth::guard('web_admin')->user()->institute->picture());
 
-        $user->notify(new BloodRequestNotification($class,$usersent,'We have just accepted your request and broadcasted to eligible donors.'));
+        $user->notify(new BloodRequestNotification($class,$usersent,'We have just accepted your request amd broadcasted to eligible donors.'));
         
         // notify uban donors
         $sameBloodTypeUsers = User::with(['donations' => function ($query) {
@@ -191,37 +210,45 @@ class AdminController extends Controller
             $query->where('status','!=','Cancelled')->orderBy('created_at','desc')->first();
         }])->whereHas('followedInstitutions', function($query) {
             $query->where('id',Auth::guard('web_admin')->user()->institution_id);
-        })->where('bloodType','B+')->get();
+        })->where('bloodType',$bloodRequest->details->blood_type)->get();
 
+        // return response()->json($sameBloodTypeUsers);
         foreach($sameBloodTypeUsers as $user)
         {
             if($user->id != $bloodRequest->initiated_by)
             {
             if(count($user->donations) != 0)
             {
+                //eligible to donate and has previous donations so tan.awn nato ang latest niya nga donation and if it is done then check the appointment_date if it is greater than 3 months.
                 if($user->donations->first()->status == 'Done')
                 {
                     $date = $user->donations->first()->appointment_time;
                     $now = Carbon::now();
                     if($date->addDays(90) >= $now)
                     {
-                        $user->notify(new BloodRequestNotification($class,$usersent, 'Someone is in need of your blood. Please donate to Philippine Red Cross.'));
+                        $institution = Auth::guard('web_admin')->user()->institute->name();
+                        $message = "Someone is in need of your blood. Please donate to ".$institution.".";
+                        $user->notify(new BloodRequestNotification($class,$usersent,$message));
+
+
+                            // $mobile = $user->contactinfo;
+                            // Chikka::send($mobile, $message);
                     }
                 }
-                else
-                {
-                    $user->notify(new BloodRequestNotification($class,$usersent,'Someone is in need of your blood. Please donate to Philippine Red Cross'));
-                }
             }
+            //wa pa siyay donation jd so eligible siya mu donate, and if age is greater than 15
             else
             {
-                $user->notify(new BloodRequestNotification($class,$usersent,'Someone is in need of your blood. Please donate to Philippine Red Cross'));
+                $institution = Auth::guard('web_admin')->user()->institute->name();
+                $message = "Someone is in need of your blood. Please donate to ".$institution.".";
+                $user->notify(new BloodRequestNotification($class,$usersent,$message));
+
+
+                    // $mobile = $user->contactinfo;
+                    // Chikka::send($mobile, $message);
             }
             }
         }
-
-        //textblast here 
-
         return redirect('/admin/request')->with('status', 'Request successfully accepted. Notified eligible donors!');
     }
 
@@ -247,61 +274,116 @@ class AdminController extends Controller
         {
             return redirect("admin/request");            
         }
-        $availBloods = $bloodRequest->details->bloodType->nonReactive();
-        return view('admin.completerequestform',compact('bloodRequest','availBloods'));
+        if(Auth::guard('web_admin')->user()->institute->settings['patient-directed'] == 'false')
+        {
+        $availBloods = $bloodRequest->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id);
+        $selectedBloods = collect();
+
+        return view('admin.completerequestform',compact('bloodRequest','availBloods','selectedBloods'));
+        }
+        else
+        {
+            $tmpAvailBloods = $bloodRequest->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id);
+            $selectedBloods = BloodInventory::has('screenedBlood.donation.bloodrequest')->where('status','Available')->get();
+            $availBloods = $tmpAvailBloods->diff($selectedBloods); 
+            // dd($availBloods);        
+            return view('admin.completerequestform',compact('bloodRequest','availBloods','selectedBloods')); 
+        }
     }
     public function updateToDone(Request $request, BloodRequest $bloodRequest)
     {
-        // dd($request->input('serial'));
-        // $bloodRequest = BloodRequest::find($request->input('id'));
-        $updates = $bloodRequest->updates;              
-        $updates[] = 'The blood request is completed and finished';   
-         
-        $bloodRequest->update([
-            'status' => 'Done',
-            'updates' => $updates
-            ]);
-        $bloodRequest->details()->update(['status' => 'Done']);
-        //if the blood request has call to arms
-        //$post = Post::create([
-        //     'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
-        //     'message' => 'A hero just saved someone someone someone',
-        //     'picture' => asset('assets/img/posts/blood-donation.jpg'),
-        //     'initiated_id' => Auth::guard('web_admin')->user()->id,
-        //     'initiated_type' => 'App\InstitutionAdmin',
-        //     'reference_type' => 'App\BloodRequest',
-        //     'reference_id' => $bloodRequest->id
-        //     ]);
-
-        Log::create([
-            'initiated_id' => $bloodRequest->user->id,
-            'initiated_type' => 'App\InstitutionAdmin',
-            'reference_type' => 'App\BloodRequest',
-            'reference_id' => $bloodRequest->id,
-            'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
-            'message' => 'You just succesfully completed a blood request transaction!'
-            ]);
-
-
-        //get blood bag given the blood bag serial number
-        // make it used 
-        // $bloodBag = $bloodRequest->details->bloodType;
-        // $bloodBag->update(['qty' => $bloodBag->qty - $bloodRequest->details->units]);
-
-        $user = $bloodRequest->user;
-        $class = array("class" => "App\BloodRequest",
-            "id" => $bloodRequest->id,
-            "time" => $bloodRequest->created_at->toDateTimeString());
-        $usersent = array("name" => Auth::guard('web_admin')->user()->institute->name(),
-                "picture" => Auth::guard('web_admin')->user()->institute->picture());
-
-        $user->notify(new BloodRequestNotification($class,$usersent,'We have completed your blood request.'));
 
         BloodInventory::whereIn('id',$request->input('serial'))
         ->update([
             'status' => 'Sold',
             'br_detail_id' => $bloodRequest->details->id,
+            'updated_at' => Carbon::now()->toDateTimeString()
             ]);
+
+        if(count($bloodRequest->releasedBlood) != $bloodRequest->details->units)
+        {
+            $cnt = count($request->input('serial'));
+            $updates = $bloodRequest->updates;              
+            $updates[] = 'You have just given '.$cnt.' blood bags';   
+             
+            $bloodRequest->update([
+                'updates' => $updates,
+                'updated_at' => Carbon::now()->toDateTimeString()
+                ]);
+            $bloodRequest->details()->update([
+                'updated_at' => Carbon::now()->toDateTimeString()
+            ]);
+
+            Log::create([
+                'initiated_id' => Auth::guard('web_admin')->user()->id,
+                'initiated_type' => 'App\InstitutionAdmin',
+                'reference_type' => 'App\BloodRequest',
+                'reference_id' => $bloodRequest->id,
+                'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+                'message' => 'You just succesfully gave '.$cnt.' blood bags to a requester'
+                ]);
+
+            Log::create([
+                'initiated_id' => $bloodRequest->user->id,
+                'initiated_type' => 'App\User',
+                'reference_type' => 'App\BloodRequest',
+                'reference_id' => $bloodRequest->id,
+                'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+                'message' => 'You just succesfully received '.$cnt.' blood bags from the blood bank'
+                ]);
+
+            $user = $bloodRequest->user;
+            $class = array("class" => "App\BloodRequest",
+                "id" => $bloodRequest->id,
+                "time" => $bloodRequest->created_at->toDateTimeString());
+            $usersent = array("name" => Auth::guard('web_admin')->user()->institute->name(),
+                    "picture" => Auth::guard('web_admin')->user()->institute->picture());
+
+            $user->notify(new BloodRequestNotification($class,$usersent,'We have given you '.$cnt.' blood bags for your request'));
+        }
+        else
+        {
+            $updates = $bloodRequest->updates;              
+            $updates[] = 'The blood request is completed and finished';   
+             
+            $bloodRequest->update([
+                'status' => 'Done',
+                'updates' => $updates,
+                'updated_at' => Carbon::now()->toDateTimeString()
+                ]);
+            $bloodRequest->details()->update([
+                'status' => 'Done',
+                'updated_at' => Carbon::now()->toDateTimeString()
+            ]);
+
+            Log::create([
+                'initiated_id' => Auth::guard('web_admin')->user()->id,
+                'initiated_type' => 'App\InstitutionAdmin',
+                'reference_type' => 'App\BloodRequest',
+                'reference_id' => $bloodRequest->id,
+                'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+                'message' => 'You just succesfully completed a blood request transaction!'
+                ]);
+
+            Log::create([
+                'initiated_id' => $bloodRequest->user->id,
+                'initiated_type' => 'App\User',
+                'reference_type' => 'App\BloodRequest',
+                'reference_id' => $bloodRequest->id,
+                'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+                'message' => 'You just succesfully completed a blood request transaction!'
+                ]);
+
+            $user = $bloodRequest->user;
+            $class = array("class" => "App\BloodRequest",
+                "id" => $bloodRequest->id,
+                "time" => $bloodRequest->created_at->toDateTimeString());
+            $usersent = array("name" => Auth::guard('web_admin')->user()->institute->name(),
+                    "picture" => Auth::guard('web_admin')->user()->institute->picture());
+
+            $user->notify(new BloodRequestNotification($class,$usersent,'We have completed your blood request.'));
+        }
+    
 
         // $hero = $bloodRequest->user;
         // dispatch(new SendTextBlast($hero,$message)); 
@@ -319,7 +401,8 @@ class AdminController extends Controller
         $bloodRequest->update([
             'status' => 'Declined',
             'reason' => $request->input('message'),
-            'updates' => $updates
+            'updates' => $updates,
+            'updated_at' => Carbon::now()->toDateTimeString()
             ]);
 
         Log::create([
@@ -365,6 +448,7 @@ class AdminController extends Controller
     {
         //claim na ta ni.
         $bloodRequest = BloodRequest::find($request->input('id'));
+
         // $hero = $bloodRequest->user;
         // $message = $request->input('message');
         // dispatch(new SendTextBlast($hero,$message));
@@ -416,15 +500,27 @@ class AdminController extends Controller
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'message' => 'You just accepted and completed a blood request!'
             ]);
+
         $user = $bloodRequest->user;
+        Log::create([   
+            'initiated_id' => $user->id,
+            'initiated_type' => 'App\User',
+            'reference_type' => 'App\BloodRequest',
+            'reference_id' => $bloodRequest->id,
+            'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+            'message' => 'Your blood bag is ready to be claimed!'
+            ]);
+
         $class = array("class" => "App\BloodRequest",
             "id" => $bloodRequest->id,
             "time" => $bloodRequest->created_at->toDateTimeString());
 
-        $usersent = array("name" => Auth::guard('web_admin')->user()->institute->name(),
-                "picture" => Auth::guard('web_admin')->user()->institute->picture());
+        $usersent = array(
+            "name" => Auth::guard('web_admin')->user()->institute->name(),
+            "picture" => Auth::guard('web_admin')->user()->institute->picture());
 
         $user->notify(new BloodRequestNotification($class,$usersent,'We have just accepted your blood request. The blood is ready to be claimed'));
+
         return redirect('/admin/request')->with('status', 'Successfully sent message!');
     }
     public function notifyViaText(Request $request)
@@ -438,5 +534,64 @@ class AdminController extends Controller
         }
         return response()->json(Array('status' => 'OK'));
     }
+
+    public function settings()
+    {
+        $institution = Auth::guard('web_admin')->user()->institute;
+        return view('admin.settings',compact('institution'));
+    }
+
+    public function edit(Request $request, Institution $institution)
+    {
+      $institution_name = $request->input('institution_name');
+      $address = array('place' => $request->input('exactcity'),
+            'longitude' => $request->input('cityLng'),
+            'latitude' => $request->input('cityLat'));
+      $email_address = $request->input('email_address');
+      $contact_information = $request->input('contact');
+
+      $bloodbags = array();
+      foreach($request->input('bag_brand') as $key => $value)
+      {
+        $brand = [
+          $value => $request->input('bag_qty')[$key]
+        ];
+        $bloodbags += $brand;
+      }
+      $settings = [
+        'patient-directed' => $request->input('reactive'),
+        'bloodbags' => 
+            $bloodbags,
+        'bloodtype_available' => 
+            $request->input('blood_bag_categories')
+        ];
+      $about_us = $request->input('about_us');
+      $links = [
+        'facebook' => $request->input('facebook'),
+        'twitter' =>  $request->input('twitter'),
+        'website' =>  $request->input('website'),
+      ];
+
+      $institution = Institution::update([
+        'institution' => $institution_name,
+        'address' => $address,
+        'email_address' => $email_address,
+        'contact_number' => $contact_information,
+        'about_us' => $about_us,    
+        'logo' => null,
+        'links' => $links,
+        'banner' => null, 
+        'settings' => $settings,
+        'status' => 'Pending'   
+        ]);
+    }
     
 }
+
+// $bloodbags = [
+//     'Karmi' => [
+//         'single' => [
+//         ],
+//         'dual' => [
+//         ]]
+// ]

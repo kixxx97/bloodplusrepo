@@ -7,6 +7,8 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use NotificationChannels\Gcm\GcmChannel;
+use NotificationChannels\Gcm\GcmMessage;
 
 class BloodRequestNotification extends Notification
 {
@@ -35,7 +37,7 @@ class BloodRequestNotification extends Notification
      */
     public function via($notifiable)
     {
-        return ['database','broadcast'];
+        return ['database','broadcast',GcmChannel::class];
     }
 
     /**
@@ -90,5 +92,15 @@ class BloodRequestNotification extends Notification
             ]
         ]);
     }
+    public function toGcm($notifiable)
+    {
+        return GcmMessage::create()
+            ->title('BloodPlus Notification')
+            ->message($this->message)
+            ->data('user',$this->user)
+            ->data('class',$this->instance)
+            ->data('saying',$this->message);
 
+    }
 }
+    

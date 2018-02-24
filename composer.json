@@ -7,14 +7,18 @@
     "require": {
         "php": ">=5.6.4",
         "barryvdh/laravel-cors": "^0.9.2",
+        "barryvdh/laravel-dompdf": "^0.8.1",
         "brozot/laravel-fcm": "^1.2",
         "davibennun/laravel-push-notification": "dev-laravel5",
         "doctrine/dbal": "^2.5",
         "jeroennoten/laravel-adminlte": "^1.19",
+        "laravel-notification-channels/gcm": "^0.2.0",
         "laravel/framework": "5.4.*",
         "laravel/tinker": "~1.0",
         "predis/predis": "^1.1",
-        "pusher/pusher-php-server": "~2.6"
+        "pusher/pusher-php-server": "~2.6",
+        "ronaldborla/chikka": "^2.1",
+        "simplesoftwareio/simple-qrcode": "^1.5"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

@@ -13,8 +13,16 @@ class CreateTableDonateRequestForms extends Migration
      */
     public function up()
     {
-        Schema::create('donate_request_forms', function (Blueprint $table) {
-            $table->increments('id');
+        Schema::create('medical_forms', function (Blueprint $table) {
+            $table->string('id')->primary();
+
+
+            $table->string('donate_request_id');
+            //json array { 0 : { question: answers: remarks: } 1 : ... }
+            $table->text('medical_history');
+            
+            $table->string('remarks');
+            $table->string('status');
             $table->timestamps();
         });
     }

@@ -14,10 +14,20 @@ class AddMoreInfoUsers extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('civil_status');
-            $table->string('religion');
-            $table->string('education');
-            $table->string('occupation');
+            //single,married
+            $table->string('civil_status')->nullable();
+
+            //religion
+            $table->string('religion')->nullable();
+
+            //college whatever
+            $table->string('education')->nullable();
+
+            //student, etc...
+            $table->string('occupation')->nullable();
+
+            //json {schoolid: companyid: prcid: driverid: sssid: othersid: }
+            $table->text('identifications')->nullable();
         });
     }
 
@@ -29,7 +39,11 @@ class AddMoreInfoUsers extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            //
+            $table->dropColumn('civil_status');
+            $table->dropColumn('religion');
+            $table->dropColumn('education');
+            $table->dropColumn('occupation');
+            $table->dropColumn('identifications');     
         });
     }
 }

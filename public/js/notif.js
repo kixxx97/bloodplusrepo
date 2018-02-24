@@ -16071,10 +16071,10 @@ var app = new Vue({
         var _this = this;
 
         this.getNotifications();
-        console.log("niagi dri");
+        // console.log("niagi dri");
         if (this.role == 'User') {
             Echo.private('users.' + this.userId).notification(function (notification) {
-                console.log(notification);
+                // console.log(notification);
                 _this.count++;
                 _this.notifications.unshift(notification);
             });
@@ -16082,9 +16082,9 @@ var app = new Vue({
             Echo.private('admin.' + this.userId).notification(function (notification) {
                 _this.count++;
                 _this.notifications.unshift(notification);
-                console.log(notification.class);
-                console.log(notification);
-                console.log(_this.notifications);
+                // console.log(notification.class);
+                // console.log(notification);
+                // console.log(_this.notifications);
             });
         }
     },
@@ -16097,8 +16097,8 @@ var app = new Vue({
             axios.get('/bloodplusrepo/public/notifications').then(function (response) {
                 _this2.count = response.data.count;
                 _this2.notifications = response.data.notif;
-                console.log(response.data.notif);
-                console.log(response);
+                // console.log(response.data.notif);
+                // console.log(response);
             });
         },
         unreadNotifications: function unreadNotifications() {
@@ -16177,16 +16177,16 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = {
   props: ['notifications', 'count'],
   mounted: function mounted() {
-    console.log(this.count);
-    console.log(this.notifications);
-    console.log("Component created!");
+    // console.log(this.count);
+    // console.log(this.notifications);
+    // console.log("Component created!");
   },
   methods: {
     getImageUrl: function getImageUrl(object) {
       return object['picture'];
     },
     counter: function counter() {
-      console.log('niagi dri');
+      // console.log('niagi dri');
       this.$emit('readnotif');
     }
   }

@@ -43,7 +43,7 @@
                 <span class="logo-mini"><img style="width:40px;height:40px" src = "{{ asset('assets/img/bloodplus/logo1.png') }}" ></span>
                   <!-- logo for regular state and mobile devices -->
                   <span class="logo-lg">
-                  <img src="{{ asset('assets/img/bloodplus/UserLogoText.png') }}" alt="User Image"></span>
+                  <img src="{{ asset('assets/img/bloodplus/UserLogoText.png') }}" alt=""></span>
             </a>
 
             <!-- Header Navbar -->
@@ -84,15 +84,14 @@
         @if(config('adminlte.layout') != 'top-nav')
         <!-- Left side column. contains the logo and sidebar -->
         <aside class="main-sidebar">
-            <div class="user-panel">
-                <div class="pull-left image">
-                    <img src="{{Auth::guard('web_admin')->user()->institute->picture()}} " class ="img-circle" alt="User Image"></span>
-                    </div>
-                    <div class="pull-left info">
-                    <p><u>Philippine Red Cross</u><br>Cebu chapter
-                    </div>
-                    <div class="pull-left info">
-                    </div>
+            <div class="user-panel" style="white-space: normal;">
+                <div class="media" style="margin-top: -10px; padding-bottom: 10px;">
+                  <div class="media-left">
+                    <img src="{{Auth::guard('web_admin')->user()->institute->picture()}} " class ="img-circle"  onError="this.onerror=null;this.src='{{ asset('assets/img/bloodplus/Logo2.png') }}'" class="media-object" style="width:40px">
+                  </div>
+                  <div class="media-body">
+                    <p>{{Auth::guard('web_admin')->user()->institute->institution}}</p>
+                  </div>
                 </div>
             <hr>
             <!-- sidebar: style can be found in sidebar.less -->
@@ -140,6 +139,12 @@
 
 @section('adminlte_js')
     <script src="{{ asset('vendor/adminlte/dist/js/app.min.js') }}"></script>
+    <script>
+
+    $("#logout").on('click',function (){
+    $("#logout-form").submit();
+     })
+    </script>
     @stack('js')
     @yield('js')
 @stop

@@ -124,7 +124,7 @@
                         </ul>
                     </div>
                     <h3 class="wow fadeInDown delay-09s">Alyzza<br> Villahermosa</h3>
-                    <span class="wow fadeInDown delay-09s">Communications and Public  Relatins</span>
+                    <span class="wow fadeInDown delay-09s">Communications and Public  Relations</span>
                     <p class="wow fadeInDown delay-09s">"We're given only one life, make it the best. Make it different. Be an inspiration."</p>
                 </div>  
 
