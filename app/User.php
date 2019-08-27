@@ -15,7 +15,9 @@ class User extends Authenticatable
     public $incrementing = false;
     
     protected $casts = [
-    'address' => 'array'
+    'address' => 'array',
+    'settings' => 'array',
+    'location' => 'array'
     ];
     protected $dates = [
         'created_at',
@@ -29,7 +31,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'id','fname','lname','mi', 'email', 'password','status','gender','bloodType','dob',    'contactinfo','email_token','api_token','verified','banner','picture','address','device_token'
+        'id','fname','lname','mi', 'email', 'password','status','gender','bloodType','dob',    'contactinfo','email_token','api_token','verified','banner','picture','address','device_token','location','company','affiliate','settings'
     ];
 
     /**
@@ -114,5 +116,43 @@ class User extends Authenticatable
     public function followIfNotFollowed(Institution $institution)
     {
 
+    }
+
+    public function checkDistance(Institution $tmpInstitution, $distance = 2)
+    {
+        if($this->location == null)
+            return false;
+
+        $instituteLong = $tmpInstitution->address['longitude'];
+        $institudeLat = $tmpInstitution->address['latitude'];
+        $userLong = $this->location['longitude'];
+        $userLat = $this->location['latitude'];
+
+        $theta = $userLong - $instituteLong;
+        
+        $distance = rad2deg(acos(sin(deg2rad($userLat)) * sin(deg2rad($institudeLat)) +  cos(deg2rad($userLat)) * cos(deg2rad($institudeLat)) * cos(deg2rad($theta))));
+        $distInMiles = $distance * 60 * 1.1515;
+
+        $distInKm = round($distInMiles * 1.609344,1);   
+        if($distInKm <= $distance)
+        return true;
+        else
+        return false;
+    }
+
+    public function sendSMS($message)
+    {
+        $number = "0".$this->contactinfo;
+        $apicode = config("app.itexmoCode");
+        $ch = curl_init();
+        $itexmo = array('1' => $number, '2' => $message, '3' => $apicode);
+        curl_setopt($ch, CURLOPT_URL,"https://www.itexmo.com/php_api/api.php");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, 
+                  http_build_query($itexmo));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result =  curl_exec ($ch);
+        curl_close ($ch);
+        return $result;
     }
 }

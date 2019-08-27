@@ -100,6 +100,20 @@
             <!-- Sidebar Menu -->
             <ul class="sidebar-menu">
             @each('adminlte::partials.menu-item', $adminlte->menu(), 'item')
+            @if(Auth::guard('web_admin')->user()->institute->mother_branch)
+            <li>
+                <a href="/admin/hq">
+                <i class="fa fa-fw fa-hospital-o "></i>
+                <span>Headquarter</span>
+                </a>
+            </li>
+            @endif
+            <li>
+                <a href="/admin/branches">
+                <i class="fa fa-fw fa-certificate "></i>
+                <span>Affiliates</span>
+                </a>
+            </li>
             </ul>
             <!-- /.sidebar-menu -->
             </section>
@@ -120,7 +134,9 @@
 
             <!-- Main content -->
             <section class="content">
-
+                @if(Auth::guard('web_admin')->user()->institute->status == 'Pending')
+                    <h1>Please wait for confirmation from the system. You will be notified via email and/or your contact number.</h1>
+                @endif
                 @yield('content')
 
             </section>

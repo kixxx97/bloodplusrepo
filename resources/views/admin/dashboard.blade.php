@@ -21,7 +21,7 @@
           <!-- small box -->
           <div class="small-box bg-aqua">
             <div class="inner">
-              <h3>{{$newlyDonors}}</h3>
+              <h3>4</h3>
 
               <p>Recent Donors<br>({{$nxt->format(' F d, Y ')}})</p>
             </div>
@@ -35,9 +35,9 @@
           <!-- small box -->
           <div class="small-box bg-green">
             <div class="inner">
-              <h3>43<sup style="font-size: 20px">%</sup></h3>
+              <h3>14<sup style="font-size: 20px"></sup></h3>
 
-              <p>Retention Rate<br><br></p>
+              <p>Blood Bags Available<br>({{\Carbon\Carbon::now()->format(' F d, Y ')}})<br></p>
             </div>
             <div class="icon">
               <i class="ion-ios-pulse-strong"></i>
@@ -49,7 +49,7 @@
           <!-- small box -->
           <div class="small-box bg-yellow">
             <div class="inner">	
-              <h3>{{count(Auth::guard('web_admin')->user()->institute->followers)}}</h3>
+              <h3>49</h3>
 
               <p>Active Blood Donors<br><br></p>
             </div>
@@ -63,7 +63,7 @@
           <!-- small box -->
           <div class="small-box bg-red">
             <div class="inner">
-              <h3>{{$campaignCount}}</h3>
+              <h3>12</h3>
 
               <p>Finished Campaigns<br><br></p>
             </div>

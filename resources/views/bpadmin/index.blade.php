@@ -49,7 +49,7 @@
           <!-- small box -->
           <div class="small-box bg-yellow">
             <div class="inner">	
-              <h3>13</h3>
+              <h3>{{count(\App\User::all())}}</h3>
 
               <p>Active Blood Donors<br><br></p>
             </div>

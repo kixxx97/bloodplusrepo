@@ -31,41 +31,50 @@ const app = new Vue({
         role: role,
     },
     created() {
-        this.getNotifications();
-        console.log("niagi dri");
+        this.getNotifications(this.role);
         if(this.role == 'User')
         {
         Echo.private('users.' + this.userId)
         .notification((notification) => {
-            console.log(notification);  
             this.count++;
             this.notifications.unshift(notification);   
         });
         }
-        else
+        else if(this.role == 'Admin')
         {
         Echo.private('admin.' + this.userId)
         .notification((notification) => {
             this.count++;
             this.notifications.unshift(notification);  
-            console.log(notification.class);
-            console.log(notification); 
-            console.log(this.notifications);
         });    
+        }
+        else
+        {
+        Echo.private('god.' + this.userId)
+        .notification((notification) => {
+            this.count++;
+            this.notifications.unshift(notification);  
+        });   
         }
     },
     methods: {
-        getNotifications() {
-            // console.log(msg.user_id);
-            axios.get('/bloodplususers/public/notifications').then(response => {
+        getNotifications(role) {
+            if(role == 'God')
+            {
+            axios.get('/notifications?role=super').then(response => {
                 this.count = response.data.count;
                 this.notifications = response.data.notif;
-                console.log(response.data.notif);
-                console.log(response);
-            });
+                });
+            }
+            else
+            {axios.get('/notifications').then(response => {
+                            this.count = response.data.count;
+                            this.notifications = response.data.notif;
+                        });
+            }
         },
         unreadNotifications() {
-            axios.get('/bloodplususers/public/notifications/unread').then(response => {
+            axios.get('/notifications/unread').then(response => {
             });    
             this.count = 0;
         }

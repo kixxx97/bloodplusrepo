@@ -16,6 +16,8 @@ use App\BloodType;
 use Carbon\Carbon;
 use App\InstitutionAdmin;
 use App\BloodRequestDonor;
+use App\BloodInventory;
+use App\Institution;
 use App\Notifications\BloodRequestNotification;
 
 
@@ -28,9 +30,10 @@ class BloodRequestController extends Controller
             $query->where('status','Pending')->orWhere('status','Ongoing');
         })->first())
         {
+
+
         $validator = Validator::make($request->all(), [
             'pname' => 'required|string|max:255',
-            'institution_id' => 'required|string',
             'diagnose' => 'required|string|max:255',
             'units' => 'required|integer|min:0',
             'bloodType' => 'required',
@@ -40,27 +43,6 @@ class BloodRequestController extends Controller
             $message = $validator->messages();
             return response()->json($message);
         }
-        // $name = $request->input('bloodType');
-        // // dd($request->input('bloodCategory'));
-        // // dd($name);
-        // // dd(BloodType::all()->first()->bloodCategory->first());
-        // $bloodBag = BloodType::whereHas('bloodCategory', function ($query) use ($name)
-        //     {
-        //         $query->where('name',$name);
-        //     })->where('category',$request->input('bloodCategory'))->first();
-        // dd($bloodBag);
-        $request_date = new Carbon($request->input('request_date').' '.$request->input('request_time'));
-
-        $bloodRequest = BloodRequest::create([
-            'id' => $str = strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
-            'patient_name' => ucwords($request->input('pname')),
-            'institution_id' => $request->input('institution_id'),
-            'diagnose' => $request->input('diagnose'),
-            'status' => 'Pending',
-            'initiated_by' => Auth::user()->id,
-            'request_date' => $request_date
-            ]);
-        // dd($bloodRequest->id);
 
         $name = $request->input('bloodType');
 
@@ -69,6 +51,86 @@ class BloodRequestController extends Controller
             {
                 $query->where('name',$name);
             })->where('category',$request->input('bloodCategory'))->first();
+
+        $inventories = BloodInventory::with('screenedBlood.donation.institute')->where('blood_type_id',$bloodBag->id)->where('status','Available')->get();
+        $institutions = collect();
+        if($inventories->isEmpty()){
+            $institutions = Institution::where('status','active')->get(); 
+        
+        $institutions = $institutions->sortBy(function ($product,$key) use ($user) {
+            $distance = $product->distanceFromUser($user);
+            return $distance;
+        })->values();
+        
+        }
+        else
+        {
+        foreach($inventories as $inventory)
+        {
+            if($institutions->isEmpty())
+            {
+                $institution = $inventory->screenedBlood->donation->institute;
+                $institution->count = 1;
+                $institutions->push(
+                    $institution
+                    );
+            }
+            else
+            {
+                $institution = $inventory->screenedBlood->donation->institute;
+
+                $bool = $institutions->contains(function ($value, $key) use($institution){
+                    if($value['id'] == $institution->id)
+                    {
+                        return true;
+                    }
+                });
+                if(!$bool)
+                {
+                    $institution->count = 1;
+                    $institutions->push(
+                    $institution
+                    );
+                }
+                else
+                {
+                    $institutions = $institutions->map(function ($item, $key) use($institution){
+                        if($item['id'] == $institution->id)
+                        {
+                        $item->count = $item->count+1;
+                        }
+
+                        return $item;
+                    });
+                }
+            }
+        }
+        $user = Auth::user();
+
+        $institutions = $institutions->sortByDesc(function ($product, $key) {
+            return $product->count;
+            })->values();
+        }
+
+        $institutions = $institutions->sortBy(function ($product,$key) use ($user) {
+            $distance = $product->distanceFromUser($user);
+            return $distance;
+        })->values();
+
+        //sort by count then nearest count
+        $institution = $institutions->first();
+
+        $request_date = new Carbon($request->input('request_date').' '.$request->input('request_time'));
+
+        $bloodRequest = BloodRequest::create([
+            'id' => $str = strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+            'patient_name' => ucwords($request->input('pname')),
+            'institution_id' => $institution->id,
+            'diagnose' => $request->input('diagnose'),
+            'status' => 'Pending',
+            'initiated_by' => Auth::user()->id,
+            'request_date' => $request_date
+            ]);
         // return response()->json($bloodBag);
         $bloodRequestDetail = BloodRequestDetail::create([
             'blood_request_id' => $bloodRequest->id,
@@ -77,7 +139,7 @@ class BloodRequestController extends Controller
             'blood_category' => $request->input('bloodCategory'),
             'units' => $request->input('units'),
             'status' => 'Pending'
-            ]);
+    ]);
 
         // dd($bloodBag);
         
@@ -105,7 +167,7 @@ class BloodRequestController extends Controller
         }
         return response()->json(array("bloodRequest"=>$bloodRequest->load(['institute','details']),
             "status" => 'Successful',
-            "message" => 'Successfully created blood request'));
+            "message" => 'We are now processing your blood request'));
         }
         else
         {
@@ -116,7 +178,7 @@ class BloodRequestController extends Controller
 
     public function getOngoingBloodRequest() 
     {
-   		$bloodRequest = BloodRequest::with(['institute','details'])->whereNotIn('status',['Done','Cancelled'])->where('initiated_by',Auth::user()->id)->first();  
+   		$bloodRequest = BloodRequest::with(['institute','details'])->whereNotIn('status',['Done','Cancelled','Declined'])->where('initiated_by',Auth::user()->id)->first();  
    		if($bloodRequest)
    		return response()->json([
    			'bloodRequest' => $bloodRequest,

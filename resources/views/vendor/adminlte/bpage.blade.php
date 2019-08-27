@@ -75,8 +75,8 @@
             </nav>
         </header>
         <script>
-          var role = "User";
-          var id = "{!! Auth::user()->id !!}";
+          var role = "God";
+          var id = "{!! Auth::user()->super->id !!}";
         </script>
         <form action = "{{ url ('/logout') }}" style="display:none" id = "logout-form" method="post">
             {{ csrf_field() }}

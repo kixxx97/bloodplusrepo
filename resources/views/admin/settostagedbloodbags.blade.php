@@ -78,7 +78,7 @@
           <select name="component[1]" class="form-control first-comp">
           <option value='' disabled hidden selected> Select Component</option>
             @foreach($components as $component)
-            @if($component != 'Whole Blood')
+            @if($component == 'Packed RBC' || $component == 'Washed RBC' || $component == 'Platelet')
             <option value="{{$component}}">{{$component}}</option>
             @endif
             @endforeach
@@ -89,7 +89,7 @@
         <select name="component[2]" class="form-control  second-comp">
             <option value='' disabled hidden selected> Select Component</option>
             @foreach($components as $component)
-            @if($component != 'Whole Blood')
+            @if($component == 'Packed RBC' || $component == 'Washed RBC' || $component == 'Platelet')
             <option value="{{$component}}">{{$component}}</option>
             @endif
             @endforeach
@@ -103,7 +103,7 @@
           <select name="component[3] third-comp" class="form-control">
           <option value='' disabled hidden selected> Select Component</option>
               @foreach($components as $component)
-              @if($component != 'Whole Blood')
+              @if($component != 'Whole Blood' && ($component == 'Cryoprecipitate' || $component == 'Fresh Frozen Plasma'))
               <option value="{{$component}}">{{$component}}</option>
               @endif
               @endforeach
@@ -118,7 +118,7 @@
           <select name="component[4] third-comp" class="form-control">
           <option value='' disabled hidden selected> Select Component</option>
               @foreach($components as $component)
-              @if($component != 'Whole Blood')
+              @if($component != 'Whole Blood' && ($component == 'Cryoprecipitate' || $component == 'Fresh Frozen Plasma'))
               <option value="{{$component}}">{{$component}}</option>
               @endif
               @endforeach
@@ -162,6 +162,9 @@
     <script> 
       $(document).ready(function() {
 
+
+        var components = {!! $jsonComponents !!};
+        console.log(components);
         $( ".first-comp" ).change(function() {
         if(this.value == 'Packed RBC' || this.value == 'Washed RBC') {
           var option = $('<option></option>').attr("value", "Platelet").text("Platelet");

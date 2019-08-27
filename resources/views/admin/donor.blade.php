@@ -44,7 +44,7 @@
         </thead>
           <tbody>  
           @foreach($donors as $donor)
-            <tr>
+            <tr class='clickable-row' data-href="{{url('/admin/user/'.$donor['id'])}}">
               <td>{{$donor['name']}}</td>
               <td>{{$donor['gender']}} </td>
               <td>{{$donor['blood_type']}}</td>
@@ -117,5 +117,8 @@
     $('#donor').DataTable();
 
     } );
+    $(".clickable-row").click(function() {
+          window.open($(this).data("href"));
+        });
     </script>
 @stop

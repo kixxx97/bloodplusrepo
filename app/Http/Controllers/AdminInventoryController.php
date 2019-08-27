@@ -12,17 +12,111 @@ use App\ScreenedBlood;
 use Carbon\Carbon;
 use \DB;
 use Auth;
+use Illuminate\Support\Facades\Validator;
 use App\Log;
 
 class AdminInventoryController extends Controller
 {
     
-    public function index()
+    public function index(Request $request)
     {
-      // dd(BloodCategory::with('bloodType')->get());
-      // dd(Auth::guard('web_admin')->user()->institute->settings['bloodtype_available']);
+      $institutionId = Auth::guard('web_admin')->user()->institution_id;
+      if($request->input('sort') == 'true')
+      {
 
-    	$bloodTypes = BloodCategory::with([
+          $validation = Validator::make($request->all(), [
+              'type' => 'nullable',
+              'dateTo' => 'nullable|required_with:dateFrom|after:dateFrom',
+              'dateFrom' => 'nullable|required_with:dateTo|before:dateTo'
+            ],[
+              'dateTo.required_with' => 'Invalid range',
+              'dateFrom.required_with' => 'Invalid range',
+              'dateTo.after' => 'Invalid range',
+              'dateFrom.before' => 'Invalid range']);
+
+            $validation->validate();
+        if($request->input('type') == 'non-reactive')
+        {
+          $type ='Available';
+        }
+        else if($request->input('type') == 'reactive')
+        {
+          $type='Unavailable';
+        }
+        else if($request->input('type') == 'expired')
+        {
+          $type ='Expired';
+        }
+        else if($request->input('type') == 'distributed')
+        {
+          $type ='Sold';
+        }
+        if($request->input('dateFrom') == null)
+        {
+        $bloodTypes = BloodCategory::with([
+          'bloodType' => function($query) 
+          {
+            $query->whereIn('category',Auth::guard('web_admin')->user()->institute->settings['bloodtype_available']);
+            $query->orderBy('category');
+          },'bloodType.inventory' => function ($query) use ($type)
+          {
+            $query->where('status',$type);
+          },'bloodType.inventory.screenedBlood.donation'
+        ])->orderBy('name')->get();  
+        }
+        else
+        {
+        $dateFrom = Carbon::parse($request->input('dateFrom'));
+        $dateTo = Carbon::parse($request->input('dateTo'))->addDays(1);
+          if($type=='Available')
+          {
+            $bloodTypes = BloodCategory::with([
+              'bloodType' => function($query) 
+              {
+                $query->whereIn('category',Auth::guard('web_admin')->user()->institute->settings['bloodtype_available']);
+                $query->orderBy('category');
+              },'bloodType.inventory' => function ($query) use ($type,$dateFrom,$dateTo)
+              {
+                $query->where(function($q) use($type) {
+                  $q->where('status','Available')->orWhere('status','Sold')->orWhere('status','Expired');
+                });
+                $query->where(function($q) use($dateFrom,$dateTo) {
+                  $q->orWhereBetween('updated_at', [$dateFrom,$dateTo]);
+                });
+              },'bloodType.inventory.screenedBlood.donation',
+              'bloodType.inventory.screenedBlood' => function($query) use ($dateFrom,$dateTo)
+              {
+                $query->where('status', 'Done');
+                $query->where(function($q) use ($dateFrom,$dateTo) {
+                  $q->orWhereBetween('updated_at', [$dateFrom,$dateTo]);
+                });
+              },
+            ])->orderBy('name')->get();
+          } 
+          else
+          {
+            $bloodTypes = BloodCategory::with([
+          'bloodType' => function($query) 
+          {
+            $query->whereIn('category',Auth::guard('web_admin')->user()->institute->settings['bloodtype_available']);
+            $query->orderBy('category');
+          },'bloodType.inventory' => function ($query) use ($type,$dateFrom,$dateTo)
+          {
+            $query->where('status',$type);
+            $query->where(function($q) use($dateFrom,$dateTo) {
+              $q->whereBetween('updated_at', [$dateFrom,$dateTo]);
+            });
+          },'bloodType.inventory.screenedBlood',
+          'bloodType.inventory.screenedBlood.donation'
+        ])->orderBy('name')->get();
+          }
+        }  
+      }
+      else
+      {
+      $bloodTypes = BloodCategory::with([
+          'bloodType.inventory.screenedBlood',
+          'bloodType.inventory.screenedBlood.donation',
           'bloodType' => function($query) 
           {
             $query->whereIn('category',Auth::guard('web_admin')->user()->institute->settings['bloodtype_available']);
@@ -30,11 +124,10 @@ class AdminInventoryController extends Controller
           },'bloodType.inventory' => function ($query)
           {
             $query->where('status','Available');
-          }
+          },
         ])->orderBy('name')->get();
-      // $bloodTypes = BloodType::find('AD7B725');
-      // dd($bloodTypes->bloodType);
-
+      }
+      $types = collect('Non-reactive','Reactive','Distributed','Expired');
     	return view('admin.inventory',compact('bloodTypes'));
     }
 
@@ -45,7 +138,6 @@ class AdminInventoryController extends Controller
           {
             $query->where('status','Available');
           }]);
-        dd($qtyInv);
         $id = Auth::guard('web_admin')->user()->institution_id;
         $count = count($qtyInv->institutionInventory($id));
         // dd($count);
@@ -66,7 +158,10 @@ class AdminInventoryController extends Controller
 
     public function showBloodbags(Request $request)
     {
-        $pendingScreenedBloods = ScreenedBlood::where('status','Pending')->get();
+        $institutionId = Auth::guard('web_admin')->user()->institution_id;
+        $pendingScreenedBloods = ScreenedBlood::where('status','Pending')->whereHas('donation', function($query) use($institutionId){ 
+            $query->where('institution_id',$institutionId);
+        })->get();
 
         return view('admin.screenedbloodbags',compact('pendingScreenedBloods'));
     }
@@ -77,7 +172,8 @@ class AdminInventoryController extends Controller
       $components = Auth::guard('web_admin')->user()->institute->settings['bloodtype_available'];
       $bloodbags = ScreenedBlood::whereIn('id',$request->input('bloodbags'))->get();
       $bloodbag = $bloodbags->first();
-      return view('admin.settostagedbloodbags',compact('bloodbags','bloodbag','single','components'));
+      $jsonComponents = json_encode($components);
+      return view('admin.settostagedbloodbags',compact('bloodbags','bloodbag','single','components','jsonComponents'));
     }
 
     public function setStatusToStaged(Request $request)
@@ -121,8 +217,8 @@ class AdminInventoryController extends Controller
       // dd($bloodbag);
       $single = true;
       $components = Auth::guard('web_admin')->user()->institute->settings['bloodtype_available'];
-
-      return view('admin.settostagedbloodbags',compact('bloodbag','single','components'));
+      $jsonComponents = json_encode($components);
+      return view('admin.settostagedbloodbags',compact('bloodbags','bloodbag','single','components','jsonComponents'));
     }
 
     public function setSingleStatusToStaged(Request $request, ScreenedBlood $bloodbag)
@@ -159,7 +255,10 @@ class AdminInventoryController extends Controller
 
     public function showStagedBloodbags(Request $request)
     {
-      $bloodBags = ScreenedBlood::where('status','Staged')->get();
+      $institutionId = Auth::guard('web_admin')->user()->institution_id;
+        $bloodBags = ScreenedBlood::where('status','Staged')->whereHas('donation', function($query) use($institutionId){ 
+            $query->where('institution_id',$institutionId);
+        })->get();
       return view('admin.stagedbloodbags',compact('bloodBags'));
     }
 
@@ -405,10 +504,6 @@ class AdminInventoryController extends Controller
         }
       
         }
-        $title = $bloodType->name.' inventory';
-        $type = 'bloodType';
-        $logs = collect($logs);
-        return view('admin.showcomponenthistory',compact('logs','title','type'));
       }
       else
       {
@@ -419,6 +514,10 @@ class AdminInventoryController extends Controller
       {
         $logs = null;
       }
+      $logs = collect($logs);
+      $title = $bloodType->name.' inventory';
+        $type = 'bloodType';
+      return view('admin.showcomponenthistory',compact('logs','title','type'));
     }
     public function showBloodCategory(BloodType $bloodCategory)
     {

@@ -43,7 +43,51 @@ class BloodRequest extends Model
         return $this->hasMany('App\BloodRequestDonor','blood_request_id','id');
     }
 
+    public function getDonors()
+    {
+
+        return count($this->donors);
+        
+    }
     public function post() {
+
         return $this->morphOne('App\Post','reference');
+
+    }
+
+    public function getSuccessfulDonationsAttribute()
+    {
+        $donors = $this->donors;
+        $details = $this->details;
+        $filteredCount = count($donors->filter(function ($value,$key) use($details) {
+        $donate = $value->donate;
+        if($donate)
+        {
+        $components = $value->donate->screenedBlood;
+        if($components)
+        {
+        $boolean = false;
+        if($components->components)
+        {
+        foreach($components->components as $component)
+        {
+            $boolean = false;
+            $category = $component->bloodType->category;
+            if($category == $details->blood_category)
+            {
+                if($component->status == 'Available')
+                {
+                $boolean = true;
+                break;
+                }
+            }
+        }
+        }
+        if($boolean)
+            return true;
+        }
+        }
+        }));
+        return $filteredCount;
     }
 }

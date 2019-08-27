@@ -376,13 +376,22 @@
               @else
               <td align="center"></td>
               @endif
-              <td>{{$question}}</td>
+              <td>{{$question}}
               @if($answer['answers'] == 'no')
+              </td>
               <td align="center"></td>
               <td align="center">No</td>
-              @else
+              @elseif($answer['answers'] == 'yes')
+              </td>
               <td align="center">Yes</td>
               <td align="center"></td>
+              @elseif($answer['answers'] == 'n/a')
+              </td><td></td>
+              <td></td>
+              @else
+              <b>{{$answer['answers']}}</b></td>
+              <td></td>
+              <td></td>
               @endif
               <td><input type="text" class="table-no-borders-td" value ="{{$answer['remarks']}}"> </td>
             </tr>
@@ -396,10 +405,12 @@
             <br>
             <div>
             <center>
+              @if($medicalHistory->medical_history != null && $medicalHistory->status != 'Done')
               <button type="submit" class="btn btn-danger" name = "remark" value ="true">Passed</button>
               <button type="submit" class="btn btn-danger" name = "remark" value ="false">Failed</button>
               <a href='{{url("/admin/donate/".$donate->id."/view/pdf")}}'>
-              <button type="button" class="btn btn-danger pull-right" name = "remark" >View PDF</button>
+              @endif
+              
               </a>
             </center>
             </div>

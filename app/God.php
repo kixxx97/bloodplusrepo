@@ -2,10 +2,14 @@
 
 namespace App;
 
+use Illuminate\Notifications\Notifiable;
+
 use Illuminate\Database\Eloquent\Model;
 
 class God extends Model
 {
+
+    use Notifiable;
 
     public $incrementing = false;
 
@@ -15,5 +19,10 @@ class God extends Model
 
    	public function logs() {
         return $this->hasMany('App\Log','initiated_id','id');
+    }
+
+    public function receivesBroadcastNotificationsOn()
+    {
+        return 'god.'.$this->id;
     }
 }

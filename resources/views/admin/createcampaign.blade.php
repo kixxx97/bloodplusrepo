@@ -48,13 +48,35 @@
               <input type="file" name="campaign_avatar" accept="image/*" class="form-control">
             </div>
             <div class="row">
+                <div class="form-group col-md-6">
+                  <label class="control-label">Event Type:</label>
+                  <select type="text" class="form-control" name="type" placeholder = "mm/dd/yy" required>
+                    <option value="Campaign">Campaign</option>
+                    <option value="Blood Drive">Blood Drive</option>
+                    <option value="Crowdfunding">Crowdfunding</option>
+                    @if ($errors->has('type'))
+                    <span class="help-block">
+                    <strong>{{ $errors->first('type') }}</strong>
+                    </span>
+                     @endif
+                  </select>
+                  </div>
+                  <div class="form-group col-md-6">
+                  <label class="control-label">Quota:</label>
+                   <input type="number" name="quota" class="form-control" placeholder = "Designated Quota" >
+                  @if ($errors->has('quota'))
+                    <span class="help-block">
+                    <strong>{{ $errors->first('quota') }}</strong>
+                    </span>
+                     @endif
+                  </div>
                 <div class="form-group col-md-4">
                   <label class="control-label">Date :</label>
-                   <input type="text" id = "campaignDate" name="campaign_date" class="form-control" placeholder = "mm/dd/yy" required>
+                   <input type="text" id = "campaignDate" name="campaign_date" class="form-control" placeholdder = "mm/dd/yy" required>
                 </div>
                 <div style="" class="form-group col-md-4">
                   <label class="control-label">Time Start:</label>
-                   <select type="text" class="form-control" name="start_time" placeholder = "mm/dd/yy" required>
+                   <select type="text" class="form-control" name="start_time" placeholder = "mm/dd/yy" >
                     <option value = "" disabled hidden selected>Start Time</option>
                     <option value="05:00">05:00 AM</option>
                     <option value="06:00">06:00 AM</option>
@@ -77,9 +99,9 @@
                   </select>
 
                 </div>
-                  <div class="form-group col-md-4">
+                <div class="form-group col-md-4">
                   <label class="control-label">Time End:</label>
-                  <select type="text" class="form-control" name="end_time" placeholder = "mm/dd/yy" required>
+                  <select type="text" class="form-control" name="end_time" placeholder = "mm/dd/yy" >
                     <option value = "" disabled hidden selected>End Time</option>
                     <option value="06:00">06:00 AM</option>
                     <option value="07:00">07:00 AM</option>
@@ -99,7 +121,7 @@
                     @if ($errors->has('donatetime'))
                     <span class="help-block">
                     <strong>{{ $errors->first('   ') }}</strong>
-                     </span>
+                    </span>
                      @endif
                   </select>
                   </div>

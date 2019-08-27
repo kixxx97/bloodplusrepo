@@ -1,0 +1,46 @@
+{
+    "name": "laravel-notification-channels/gcm",
+    "description": "Android GCM Push Notification Channel",
+    "homepage": "https://github.com/laravel-notification-channels/gcm",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Fruitcake",
+            "email": "info@fruitcake.nl",
+            "homepage": "https://fruitcake.nl"
+        }
+    ],
+    "require": {
+        "php": ">=5.5",
+        "illuminate/events": "^5.1|^5.2|^5.3",
+        "illuminate/notifications": "^5.3",
+        "illuminate/queue": "^5.1|^5.2|^5.3",
+        "illuminate/support": "^5.1|^5.2|^5.3",
+        "zendframework/zendservice-google-gcm": "^2.0"
+    },
+    "require-dev": {
+        "mockery/mockery": "^0.9.5",
+        "phpunit/phpunit": "4.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "NotificationChannels\\Gcm\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "NotificationChannels\\Gcm\\Test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.2-dev"
+        }
+    }
+}

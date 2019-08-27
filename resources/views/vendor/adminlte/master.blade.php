@@ -21,7 +21,7 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/AdminLTE.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css') }}">
-        
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script>
         window.Laravel = {!! json_encode([
             'csrfToken' => csrf_token(),
@@ -40,7 +40,7 @@
 @yield('body')
 <script src = "{{ asset('js/app.js') }}"></script>
 <script src = "{{ asset('js/notif.js') }}"></script>
-<script src = "{{ asset('vendor/adminlte/plugins/jQuery-slimScroll/jquery.slimscroll.js')}}"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 @if(config('adminlte.plugins.datatables'))
     <!-- DataTables -->
     <script src="//cdn.datatables.net/v/bs/dt-1.10.13/datatables.min.js"></script>

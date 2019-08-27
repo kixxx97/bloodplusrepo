@@ -28,7 +28,19 @@
           </div>
           <div class ="col-md-2">
           <label class="control-label">Blood Type:</label>
-          <input type ="text" class ="form-control text-underline" value ="{{$donate->user->bloodType}}" readonly/>
+          <select name ="bloodType" class ="form-control text-underline">>
+          @if($donate->user->bloodType)
+          <option value = "{{$donate->user->bloodType}}" hidden selected>{{$donate->user->bloodType}}</option>
+          @endif
+          <option value ="A+">A+</option>
+          <option value ="A-">A-</option>
+          <option value ="B+">B+</option>
+          <option value ="B-">B-</option>
+          <option value ="AB+">AB+</option>
+          <option value ="AB-">AB-</option>
+          <option value ="O+">O+</option>
+          <option value ="O-">O-</option>
+          </select>
           </div>
           <div class ="col-md-2">
           <label class="control-label">Gender:</label>
@@ -84,7 +96,7 @@
         {!! csrf_field() !!}
         <div class="form-group">
           <br>
-          <label class="control-label">Needed:</label>
+          <label class="control-label">In Demand:</label>
           <div id ="updates">
             @forelse($updates as $update)
               <li>{{$update}}</li>
@@ -112,7 +124,7 @@
       var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
         $.ajax({
         method: "post",
-        url: "/bloodplusrepo/public/admin/bloodbags/components",
+        url: "/admin/bloodbags/components",
         data: {'_token': CSRF_TOKEN,
                'bloodbag': $(this).val()
                },

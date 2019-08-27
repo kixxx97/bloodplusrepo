@@ -4,12 +4,14 @@ namespace App\Http\Controllers\AdminAuth;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-
 use Illuminate\Support\Facades\Validator;
 use Auth;
 use App\InstitutionAdmin;
 use App\Institution;
-
+use App\Log;
+use App\God;
+use \Carbon\Carbon;
+use App\Notifications\BloodRequestNotification;
 
 class RegisterController extends Controller
 {
@@ -60,8 +62,8 @@ class RegisterController extends Controller
         'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
         'institution' => $institution_name,
         'address' => $address,
-        'email_address' => $email_address,
-        'contact_number' => $contact_information,
+        'email' => $email_address,
+        'contact' => $contact_information,
         'about_us' => $about_us,
         'logo' => null,
         'links' => $links,
@@ -70,13 +72,26 @@ class RegisterController extends Controller
         'status' => 'Pending'   
         ]);
     	$admin = $this->create($request->all(),$institution);
-      // dd($institution);
+      if($admin)
+      {
+        $gods = God::where('status','Active')->get();
+        $class = array("class" => 'App\Institution',
+            "id" => $institution->id,
+            "time" => Carbon::now()->toDateTimeString());
+        $user = array('name' => $institution->name(),
+                'picture' => $institution->picture());
+        $message = $institution->name(). ' wants to be registered into the system.';
+        foreach($gods as $god)
+        {
+          $god->notify(new BloodRequestNotification($class,$user,$message));
+        }
+      }
 
     	Auth::guard('web_admin')->login($admin);
 
       
       //fire notification to bpadmin
-    	return redirect($this->redirectPath);
+    	return redirect($this->redirectPath)->with('status');
     }
 
     protected function guard()

@@ -5237,3 +5237,15 @@ input[readonly] {
 
 .table-hover tbody tr
  { cursor: pointer; }
+
+ .wizard li.active:after
+ {
+  border-bottom-color: #d73925;
+ }
+ .wizard li.active span.round-tab
+ {
+  border: 2px solid #d73925;
+ }
+ .wizard li.active span.round-tab i {
+  color: #d73925;
+ }

@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Carbon\Carbon;
 use App\Notifications\GeneralNotification;
+use App\Campaign;
 
 class NotifyUsersForCampaigns extends Command
 {

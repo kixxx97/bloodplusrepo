@@ -13,6 +13,8 @@ return [
     */
     'secret' => 'BloodPlusIsAw4some',
     
+    'itexmoCode' => 'TR-KIRST649699_JSNPA',
+    
     'name' => env('APP_NAME', 'Laravel'),
 
     /*

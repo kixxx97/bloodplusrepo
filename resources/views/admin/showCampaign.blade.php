@@ -27,17 +27,19 @@
     <div class="col-xs-12">
       <div class="box box-info">
         <div class="box-body">
-            <div class="row">
+            <div class="row flex">
                 <div class="col-md-4">
                     <img src ="{{$campaign->picture}}"/ style="display:cover;height:100%;width:100%">
                 </div>
-                <div class="col-md-8">
-
+                <div class="col-md-8" style ="height:100%">
                         <h1>{{$campaign->name}}</h1> <br>
                         {!! $campaign->description !!} <br><br>
                         <span class="bottom-text">
                   <h3>{{$campaign->date_start->format('F j\, Y h:i A')}}<br>{{$campaign->address['place']}}</h3>
                 </span>
+                <br><br>
+                <a href ="{{url('/admin/campaign/'.$campaign->id.'/qr')}}" target="_blank" style ="position:relative;bottom:0"><button class="btn btn-danger">QR Code PDF</button></a>
+                <a href ="{{url('/admin/campaign/'.$campaign->id.'/attendance')}}" style ="position:relative;bottom:0"><button class="btn btn-danger">Attendance Sheet</button></a>
                 </div>
                 
                   

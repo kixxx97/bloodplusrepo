@@ -334,8 +334,24 @@ class BloodPlusController extends Controller
         return redirect('/request')->with('status', 'Successfully cancelled blood request');
     }
 
-    public function getNotifications()
+    public function getNotifications(Request $request)
     {
+        if($request->input('role') == 'super')
+        {
+            $tmpData = Auth::user()->super->notifications;
+            $data = null;
+            $count = 0;
+            foreach($tmpData as $tmp)
+            {
+                $data[$count]['data'] = $tmp->data;
+                $data[$count]['read_at'] = $tmp->read_at;
+                $count++;
+            }
+            $count = count(Auth::user()->super->unReadNotifications);
+            return response()->json(['notif' => $data, 'count' => $count]);
+        }
+        else
+        {
         if(Auth::guard('web_admin')->check()) {  
             // return response()->json('abcdefg');
             $tmpData = Auth::guard('web_admin')->user()->notifications;
@@ -364,6 +380,7 @@ class BloodPlusController extends Controller
             }
             $count = count(Auth::user()->unReadNotifications);
             return response()->json(['notif' => $data, 'count' => $count]);
+        }
         }
     }
 

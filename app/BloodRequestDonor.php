@@ -16,4 +16,9 @@ class BloodRequestDonor extends Model
     {
     	return $this->belongsTo('App\BloodRequest','blood_request_id','id');
     }
+
+    public function donate()
+    {
+    	return $this->belongsTo('App\DonateRequest','donate_request_id','id');
+    }
 }

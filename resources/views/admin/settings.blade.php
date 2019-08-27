@@ -16,7 +16,7 @@
           <!-- Profile Image -->
           <div class="box box-info">
             <div class="box-body box-profile">
-              <img class="profile-user-img img-responsive img-circle" src="{{Auth::guard('web_admin')->user()->picture}}" onError="this.onerror=null;this.src='{{ asset('assets/img/bloodplus/Logo2.png') }}" alt="User profile picture">
+              <img class="profile-user-img img-responsive img-circle" src="{{Auth::guard('web_admin')->user()->picture()}}" onError="this.onerror=null;this.src='{{ asset('assets/img/bloodplus/Logo2.png') }}" alt="User profile picture">
 
               <h3 class="profile-username text-center">{{Auth::guard('web_admin')->user()->name()}}</h3>
             </div>
@@ -30,7 +30,7 @@
               <li class=""><a href="#settings" data-toggle="tab" aria-expanded="true">Settings</a></li>
             </ul>
             <div class="tab-content">
-              <div class="tab-pane active " id="activity">
+              <div class="tab-pane active" id="activity">
                 <div class="box-body">
               <h4><strong><i class="fa fa-book margin-r-5"></i> General Information</strong></h4>
 
@@ -63,7 +63,7 @@
               </ul>
               <h4><strong><i class="fa fa-file-text-o margin-r-5"></i> About us</strong></h4>  
               {!!$institution->about_us!!}
-            </div>
+                </div>
               </div>
               <!-- /.tab-pane -->
 

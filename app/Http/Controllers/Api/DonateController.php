@@ -128,7 +128,9 @@ class DonateController extends Controller
 	public function createMedicalHistory(Request $request,DonateRequest $donateRequest 	)	
 	{	
 		//kuha.on request input answers
-		// dd($request->input('answers');
+			// Log::create(['id' => '1',
+			// 	'message' => json_encode($request->input('answers'))
+			// ]);
 		$answers = $request->input('answers');
 		$medical_history = [
 			[
@@ -268,7 +270,7 @@ class DonateController extends Controller
 			'answers' => $answers[30],
 			'remarks' => '',
 				],
-			'Have you ever been refused as a blood donor or told not to donate blood for any reasons?' => [
+			'Have you ever been refused as a ldonor or told not to donate blood for any reasons?' => [
 			'answers' => $answers[31],
 			'remarks' => '',
 				]
@@ -304,6 +306,7 @@ class DonateController extends Controller
 			'medical_history' => json_encode($medical_history),
 			'status' => 'Ongoing'
 			]);
+		
 		return response()->json([
 			'medical_history' => json_encode($medical_history),
 			'status' => 'Successful',

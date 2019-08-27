@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class BloodRequestDetail extends Model
 {
     protected $fillable = [
-        'bloodbag_id','blood_request_id','blood_type','blood_category','units','status'
+        'id','bloodbag_id','blood_request_id','blood_type','blood_category','units','status'
     ];
 
 
@@ -33,6 +33,7 @@ class BloodRequestDetail extends Model
 
     public function releasedBlood()
     {
-        return $this->hasMany('App\BloodInventory','id','br_detail_id');
+        return $this->hasMany('App\BloodInventory','br_detail_id','id');
     }
+
 }

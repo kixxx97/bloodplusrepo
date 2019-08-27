@@ -92,6 +92,7 @@ class BloodRequestNotification extends Notification
             ]
         ]);
     }
+    
     public function toGcm($notifiable)
     {
         return GcmMessage::create()

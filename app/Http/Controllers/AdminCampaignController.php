@@ -10,6 +10,9 @@ use Auth;
 use App\Post;
 use App\Log;
 use App\Institution;
+use \QrCode;
+use PDF;
+use App\Notifications\CampaignNotification;
 use App\Notifications\BloodRequestNotification;
 
 class AdminCampaignController extends Controller
@@ -37,22 +40,35 @@ class AdminCampaignController extends Controller
             'campaign_name' => 'required|string|max:255',
             'campaign_description' => 'required|string|max:255',
             'exactcity' => 'required|string',
-            'campaign_date' => 'required|date|after:today',
-            'start_time' => 'required|date_format:H:i',
+            'campaign_date' => 'nullable|date|after:yesterday',
+            'start_time' => 'nullable|date_format:H:i',
             'campaign_avatar' => 'image',
-            'end_time' => 'required|date_format:H:i'
+            'end_time' => 'nullable|date_format:H:i',
+            'quota' => 'nullable|integer'
             ]);
 
-        $validation->validate();
-
+        // $validation->validate();
         $address = 
             array('place' => $request->input('exactcity'),
             'longitude' => $request->input('cityLng'),
             'latitude' => $request->input('cityLat'));
         // print_r($address);
+    
+        $id = $str = strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7));
+        if($request->input('type') == 'Crowdfunding')
+        {
+            $type = 'Crowdfunding';
+            $date_start = Carbon::parse($request->input('campaign_date'));
+            $date_end = Carbon::parse($request->input('campaign_date'))->addDays(15);
+            $quota = $request->input('quota');
+        }
+        else
+        {
         $date_start = new Carbon($request->input('campaign_date').' '.$request->input('start_time'));
         $date_end = new Carbon($request->input('campaign_date').' '.$request->input('end_time'));
-        $id = $str = strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7));
+        $quota = null;
+        $type = $request->input('type');
+        }
         if($request->file('campaign_avatar'))
         {
         $ext = \File::extension($request->file('campaign_avatar')->getClientOriginalName()); 
@@ -74,7 +90,9 @@ class AdminCampaignController extends Controller
         	'date_end' => $date_end,
         	'status' => 'Pending',
             'initiated_by' => $initiated_by,
-            'picture' => $picture
+            'picture' => $picture,
+            'type'  => $type,
+            'quota' => $quota
         	]);
         // dd($create->id);
         // dd($initiated_by);
@@ -101,16 +119,16 @@ class AdminCampaignController extends Controller
         $institute = Institution::find(Auth::guard('web_admin')->user()->institute->id);
         $followers = $institute->followers;
         // dd('niagi dri');
-        $id = $create->id;
+        $campaign = $create;
         $class = array("class" => "App\Campaign",
-            "id" => $create->id,
-            "time" => $create->created_at->toDateTimeString());
+            "id" => $campaign->id,
+            "time" => $campaign->created_at->toDateTimeString());
         $user = array("name" => Auth::guard('web_admin')->user()->institute->name(),
                 "picture" => Auth::guard('web_admin')->user()->institute->picture());
         $message = Auth::guard('web_admin')->user()->institute->name().' just initiated a campaign. Join Now!';
         foreach($followers as $follower)
         {
-            $follower->notify(new BloodRequestNotification($class,$user,$message));
+            $follower->notify(new CampaignNotification($class,$user,$message));
         }
         return redirect('/admin/campaign/'.$create->id)->with('status', 'Campaign successfully made!');
     	// $contents = Storage::url('avatars/'.$name);
@@ -127,7 +145,7 @@ class AdminCampaignController extends Controller
         return view('admin.createcampaign');
     }
 
-    protected function generateQrCode(Campaign $campaign)
+    public function generateQrCode(Campaign $campaign)
     {
         $id = $campaign->id;
     $attendance = $campaign->attendance;
@@ -137,11 +155,18 @@ class AdminCampaignController extends Controller
             $attendanceIds[] = $attendance->user_id;
     }
     $data = json_encode([
-        'campaignId' => $id,
-        'attendanceIds' => $attendanceIds]);
-    $qr = base64_encode(QrCode::format('png')->size(100)->generate($data));
+            'campaignId' => $id]);
+    $qr = base64_encode(QrCode::format('png')->size(400)->generate($data));
 
-    return $qr;
+    return PDF::loadview('pdf.campaignpdf',compact('campaign','qr'))->setOptions(['dpi' => 96])->setPaper('folio','portrait')->stream('Donation Form.pdf');
+    }
+
+    public function attendance(Campaign $campaign)
+    {
+        $campaign->load(['attendance']);
+            return view('pdf.attendancepdf',compact('campaign'));
+        return PDF::loadview('pdf.attendancepdf',compact('campaign'))->setOptions(['dpi' => 96])->setPaper('folio','portrait')->stream('Donation Form.pdf');
+        // return PDF::loadview('pdf.campaignpdf',compact('campaign','qr'))->setOptions(['dpi' => 96])->setPaper('folio','portrait')->stream('Donation Form.pdf');
     }
 
 

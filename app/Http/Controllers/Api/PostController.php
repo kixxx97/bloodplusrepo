@@ -112,7 +112,7 @@ class PostController extends Controller
         //     ]);
         $tmpPinnedPost = BloodRequest::with('details','post','institute')->whereHas('details',function ($query) {
                 $query->where('blood_type',Auth::user()->bloodType);
-                })->where('status','Ongoing')->first();
+                })->where('status','Ongoing')->where('initiated_by','!=',Auth::user()->id)->first();
         // $post = $pinnedPost->post->first();
         if($tmpPinnedPost)
         {
@@ -136,7 +136,19 @@ class PostController extends Controller
             'message' => 'Retrieved all posts'
             ));
         }
-        
+
+        $institution = $tmpPinnedPost->institute;
+        $distance = Auth::user()->checkDistance($institution);
+
+        if(!$distance)
+        {
+            return response()->json(array(
+            'pinnedPost' => null,
+            'posts' => $posts,
+            'status' => 'Successful',
+            'message' => 'Retrieved all posts'
+            ));
+        }
         $lastRequest = DonateRequest::where('status','Done')->where('initiated_by',Auth::user()->id)->orderBy('created_at','desc')->first();
         // dd($lastRequest->user->id);
         if($lastRequest)

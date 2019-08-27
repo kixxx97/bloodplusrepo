@@ -8,6 +8,8 @@ use App\Institution;
 use App\Notifications\BloodRequestNotification;
 use Carbon\Carbon;
 use App\Log;
+use App\BloodInventory;
+use App\ScreenedBlood;
 use Auth;
 use App\BloodCategory;
 use App\InstitutionAdmin;
@@ -39,6 +41,15 @@ class InstitutionsController extends Controller
             'reference_type' => 'App\Institution',
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'message' => 'You accepted an institution to the system.'
+            ]);
+
+        Log::create([
+            'initiated_id' => $institution->admins->first()->id,
+            'initiated_type' => 'App\InstitutionAdmin',
+            'reference_id' => $institution->id,
+            'reference_type' => 'App\Institution',
+            'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+            'message' => 'You have been accepted to BloodPlus!'
             ]);
 
         //notify
@@ -109,5 +120,5 @@ class InstitutionsController extends Controller
         return view('bpadmin.showinstitutioninventory',compact('institution','bloodTypes'));
     }
 
-    
+      
 }

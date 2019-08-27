@@ -61,7 +61,7 @@
     <script type="text/javascript" src="{{asset('landing/js/wow.js')}}"></script>
     <script type="text/javascript" src="{{asset('landing/js/classie.js')}}"></script>
     <script src="{{asset('landing/contactform/contactform.js')}}"></script>
-
+    
     @yield('additional_js')
 </body>
 <html>

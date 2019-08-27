@@ -17,7 +17,6 @@ class Accepted
     public function handle($request, Closure $next)
     {
 
-
         if (Auth::guard('web_admin')->user()->institute->status == 'active')
         { 
             return $next($request);

@@ -118,7 +118,78 @@
                                 @endif
                             </div>
                         </div>
+                       
+
+                        <div class ="form-group">
+                        <label for="Address" class="col-md-4 control-label">Address</label>
+                        <div class="col-md-6">
+                        <input id="searchTextField" type="text" class ="form-control" placeholder="Enter a location" autocomplete="on" runat="server" name ="exactcity"/>  
+                        <input type="hidden" id="cityLat" name="cityLat" />
+                        <input type="hidden" id="cityLng" name="cityLng" /> 
+                        </div>
+                        </div>
                         <div class="form-group">
+                            <label for="email" class="col-md-4 control-label">Affiliation</label>
+
+                            <div class="col-md-6">
+                                <input id="affiliate" type="text" class="form-control" value="{{ old('affiliate') }}" name="affiliate" required>
+
+                                @if ($errors->has('affiliate'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('affiliate') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="col-md-4 control-label">Company</label>
+
+                            <div class="col-md-6">
+                                <input id="company" type="text" class="form-control" value="{{ old('company') }}" name="company" required>
+
+                                @if ($errors->has('company'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('company') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <div style="" class="row  form-group">
+                            <label for="email" class="col-md-4 control-label">Preferred Location</label>
+                                <div class="col-md-8">
+                                <select class ="forminput2" name ="preferPlace">
+                                    <option value="Baranggay">Baranggay</option>
+                                    <option value="Workplace">Workplace</option>
+                                    <option value="School">School</option>
+                                    <option value="Blood Banks">Blood Banks</option>
+                                </select>
+
+                                @if ($errors->has('gender'))
+                                    <!-- <span class="help-block">
+                                        <strong>{{ $errors->first('gender') }}</strong>
+                                    </span> -->
+                                @endif
+
+                        </div>  
+                        </div>
+                        <div style="" class="row  form-group">
+                            <label for="email" class="col-md-4 control-label">Preferred Day to donate</label>
+                                <div class="col-md-8">
+                                <select class ="forminput2" name ="preferDay">
+                                    <option value="Weekdays">Weekdays</option>
+                                    <option value="Weekends">Weekends</option>
+                                    <option value="Holidays">Holidays</option>
+                                </select>
+
+                                @if ($errors->has('gender'))
+                                    <!-- <span class="help-block">
+                                        <strong>{{ $errors->first('gender') }}</strong>
+                                    </span> -->
+                                @endif
+
+                        </div>  
+                        </div>
+                         <div class="form-group">
                             <label for="email" class="col-md-4 control-label">E-Mail Address</label>
 
                             <div class="col-md-6">
@@ -130,15 +201,6 @@
                                     </span>
                                 @endif
                             </div>
-                        </div>
-
-                        <div class ="form-group">
-                        <label for="Address" class="col-md-4 control-label">Address</label>
-                        <div class="col-md-6">
-                        <input id="searchTextField" type="text" class ="form-control" placeholder="Enter a location" autocomplete="on" runat="server" name ="exactcity"/>  
-                        <input type="hidden" id="cityLat" name="cityLat" />
-                        <input type="hidden" id="cityLng" name="cityLng" /> 
-                        </div>
                         </div>
                         <div class="form-group ">
                             <label for="password" class="col-md-4 control-label">Password</label>

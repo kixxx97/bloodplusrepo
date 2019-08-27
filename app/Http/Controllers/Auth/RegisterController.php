@@ -17,7 +17,7 @@ use Mail;
 class RegisterController extends Controller
 {
     /*
-    |--------------------------------------------------------------------------
+    |------------   --------------------------------------------------------------
     | Register Controller
     |--------------------------------------------------------------------------
     |
@@ -34,7 +34,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -55,9 +55,9 @@ class RegisterController extends Controller
 
     public function register(Request $request)
     {
-        // dd($request);
-        Log::create(['id'=>strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7))
-            , 'message' => 'Someone is registering']);
+        // dd($request->input());
+        // Log::create(['id'=>strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7))
+        //     , 'message' => 'Someone is registering']);
         $this->validator($request->all())->validate();
         // dd('niagi dri');
         event(new Registered($user = $this->create($request->all())));
@@ -66,7 +66,7 @@ class RegisterController extends Controller
 
         //send mail to queue
         // $email = new EmailVerification($user);
-        Mail::to($user->email)->send($email);
+        // Mail::to($user->email)->send($email);
         // dispatch(new SendVerificationEmail($user));
         Log::create([
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
@@ -75,7 +75,7 @@ class RegisterController extends Controller
             'reference_id' => $user->id,
             'initiated_id' => $user->id,
             ]);
-        return redirect('/login')->with(['status' => 'We have sent you a verification through your email. Please click the link provided in your email to activate your account.']);
+        return redirect('/')->with(['status' => 'Thank you for registering and joining the crowdfunding activity.']);
     }
     public function verify($token)
     {
@@ -109,7 +109,6 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        // dd($data);
         $address = 
             array('place' => ucwords($data['exactcity']),
                 'longitude' => $data['cityLng'], 
@@ -120,6 +119,11 @@ class RegisterController extends Controller
         else
         $picture = asset('storage/avatars/profile/woman.png');
 
+        $settings = [
+            'prefferedPlace' => $data['preferPlace'],
+            'prefferedDay' => $data['preferDay']
+        ];
+        // dd($settings);
         return User::create([ 
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'fname' => ucwords($data['fname']),
@@ -135,7 +139,10 @@ class RegisterController extends Controller
             'picture' => $picture,
             'api_token' => base64_encode($data['email'].'kixgwapo'),
             'email_token' => base64_encode($data['email']),
-            'address' => $address
+            'address' => $address,
+            'settings' => $settings,
+            'company' => $data['company'],
+            'affiliate' => $data['affiliate'],
         ]);
         // dd($data);
 

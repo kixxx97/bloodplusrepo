@@ -51,7 +51,7 @@ class InitiateMedicalHistoryForm extends Command
             // {
                 // asdsas
                 // dd('11111');
-                if($donation->appointment_time->diffInHours(Carbon::now(),false) < 7)
+                if($donation->appointment_time->diffInHours(Carbon::now(),false) < 17)
                 {
                     // dd('12345');
                 $class = [
@@ -60,8 +60,8 @@ class InitiateMedicalHistoryForm extends Command
                     "time" => Carbon::now()->toDateTimeString()
                 ];
                 $user = [
-                    "name" => $donation->user->name(),
-                    "picture" => $donation->user->picture()
+                    "name" => $donation->institute->name(),
+                    "picture" => $donation->institute->picture()
                 ];
                 $message = "You are requested to fill up the medical history form for your donation.";
                 $donation->user->notify(

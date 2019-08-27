@@ -43,9 +43,11 @@
             <th>ID</th>
             <th>Campaign Name</th>
             <th>Address</th>
+            <th>Type</th>
             <th>Date Start</th>
             <th>Time Start</th>
             <th>Time End</th>
+            <th>Gathered/Quota</th>
             <th>Actions</th>
           </thead>
           <tbody>
@@ -55,9 +57,18 @@
                 <td>{{$campaign->id}}</td>
                 <td>{{$campaign->name}}</td>
                 <td>{{$campaign->address['place']}}</td>
-                <td>{{$campaign->date_start->format('F jS, Y')}}</td>
+                <td>{{$campaign->type}}</td>
+                @if($campaign->type != 'Crowdfunding')
+                <td>{{$campaign->date_start->format('F d Y')}}</td>
                 <td>{{$campaign->date_start->format('h:i A')}}</td>
                 <td>{{$campaign->date_end->format('h:i A')}}</td>
+                <td></td>
+                @else
+                <td>{{$campaign->date_start->format('F d Y')}}</td>
+                <td></td>
+                <td></td>
+                <td>0/{{$campaign->quota}}</td>
+                @endif
                 <td><button type="button" value = "{{$campaign->id}}" class="btn-xs btn-info decl viewCampaign"><i class="fa fa-eye"></i></button></td>
               </tr>
             @endif
@@ -74,9 +85,11 @@
             <th>ID</th>
             <th>Campaign Name</th>
             <th>Address</th>
+            <th>Type</th>
             <th>Date Start</th>
             <th>Time Start</th>
             <th>Time End</th>
+            <th>Quota</th>
             <th>Actions</th>
           </thead>
           <tbody>
@@ -86,9 +99,19 @@
                 <td>{{$campaign->id}}</td>
                 <td>{{$campaign->name}}</td>
                 <td>{{$campaign->address['place']}}</td>
+                @if($campaign->type != 'Crowdfunding')
+                <td>{{$campaign->type}}</td>
                 <td>{{$campaign->date_start->format('F d Y')}}</td>
                 <td>{{$campaign->date_start->format('h:i A')}}</td>
-                <td>{{$campaign->date_end->format(' h:i A')}}</td>
+                <td>{{$campaign->date_end->format('h:i A')}}</td>
+                <td></td>
+                @else
+                <td>{{$campaign->type}}</td>
+                <td>{{$campaign->date_start->format('F d Y')}}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                @endif
                 <td><button type="button" value = "{{$campaign->id}}" class="btn-xs btn-info decl viewCampaign"><i class="fa fa-eye"></i></button></td>
               </tr>
             @endif
@@ -105,8 +128,11 @@
             <th>ID</th>
             <th>Campaign Name</th>
             <th>Address</th>
+            <th>Type</th>
             <th>Date Start</th>
-            <th>Date End</th>
+            <th>Time Start</th>
+            <th>Time End</th>
+            <th>Quota</th>
             <th>Actions</th>
           </thead>
           <tbody>
@@ -116,8 +142,19 @@
                 <td>{{$campaign->id}}</td>
                 <td>{{$campaign->name}}</td>
                 <td>{{$campaign->address['place']}}</td>
-                <td>{{$campaign->date_start->format(' jS \\of F Y H:i A')}}</td>
-                <td>{{$campaign->date_end->format(' jS \\of F Y h:i A')}}</td>
+                @if($campaign->type != 'Crowdfunding')
+                <td>{{$campaign->type}}</td>
+                <td>{{$campaign->date_start->format('F d Y')}}</td>
+                <td>{{$campaign->date_start->format('h:i A')}}</td>
+                <td>{{$campaign->date_end->format('h:i A')}}</td>
+                <td></td>
+                @else
+                <td>{{$campaign->type}}</td>
+                <td>{{$campaign->date_start->format('F d Y')}}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                @endif
                 <td><button type="button" value = "{{$campaign->id}}" class="btn-xs btn-info decl viewCampaign"><i class="fa fa-eye"></i></button></td>
               </tr>
             @endif

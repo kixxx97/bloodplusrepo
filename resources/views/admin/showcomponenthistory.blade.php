@@ -233,11 +233,24 @@
               <h1>aaa</h1>
               @endforelse
             @empty
-              <h1>ccc</h1>
+              <li class="time-label">
+                    <span class="bg-red">
+                    {{\Carbon\Carbon::now()->format('l\, F d Y')}}
+                    </span>
+              </li>
+              <li>
+                <i class="fa fa-question bg-gray"></i>
+
+                <div class="timeline-item">
+
+                  <div class="timeline-body">
+                    Nothing happened for this blood category yet.
+                  </div>
+                </div>
+              </li>
             @endforelse
             @endif
           </ul>
-          <h1>awdwas</h1>
         </div>
       </div>
 </div>

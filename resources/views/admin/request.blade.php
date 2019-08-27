@@ -86,9 +86,9 @@
                 <th>Patient Name</th>
                 <th>Requested by</th>
                 <th>Blood Type</th> 
-                <th>Units</th>  
+                <th>Given/Units</th>  
                 <th>Available </th>
-                <th>Responding </th>
+                <th>Donated/Responding </th>
                 <th>Date Requested</th>
                 <th>Actions</th>
             </tr>
@@ -99,11 +99,11 @@
             <tr>
               <td> {{$request->id}} </td>
               <td> {{$request->patient_name}}  </td>
-              <td> {{$request->user->fname.' '.$request->user->lname}} </td>
+              <td> {{$request->user->name()}} </td>
               <td>{{ $request->details->blood_category.' '.$request->details->blood_type }} </td>
-              <td>{{ $request->details->units }} </td>
+              <td>{{ count($request->details->releasedBlood)}}/{{ $request->details->units }} </td>
               <td> {{ count($request->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id))}} </td>
-              <td>{{count($request->donors)}}</td>
+              <td>{{$request->successfulDonations}}/{{count($request->donors)}}</td>
               @if($request->request_date == null)
               <td></td>
               @else
@@ -113,7 +113,7 @@
             @if(count($request->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id)) >= 5 || count($request->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id)) != 0)
              <button type="button" value = "{{$request->id}}" class="btn-s btn-warning claimRequest"><i class="fa fa-gift" aria-hidden="true"></i></button>
             @endif
-            @if(count($request->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id)) >= $request->details->units)
+            @if(count($request->details->bloodType->nonReactive(Auth::guard('web_admin')->user()->institute->id)) != 0)
             <button type="button" value = "{{$request->id}}" class="btn-s btn-success something"><i class="fa fa-check" aria-hidden="true"></i></button>
             @endif
             </td>

@@ -10,7 +10,8 @@ class BloodInventory extends Model
 	public $incrementing = false;
 
 	protected $fillable = [
-   	 'id','screened_blood_id','blood_type_id','status'
+   	 'id','screened_blood_id','blood_type_id','status',
+       'br_detail_id'
    	 ];
 
    public function bloodType()
@@ -21,5 +22,10 @@ class BloodInventory extends Model
    public function screenedBlood()
    {
    		return $this->belongsTo('App\ScreenedBlood','screened_blood_id','id');
+   }
+
+   public function request()
+   {
+      return $this->belongsTo('App\BloodRequestDetail','br_detail_id','id');
    }
 }

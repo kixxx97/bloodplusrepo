@@ -13,6 +13,9 @@
 Broadcast::channel('admin.{id}', function () {
 	return true;
 });
+Broadcast::channel('god.{id}', function () {
+	return true;
+});
 Broadcast::channel('users.{id}', function () {
     return true;
 });

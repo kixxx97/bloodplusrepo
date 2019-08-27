@@ -33,9 +33,6 @@
         ],
         mounted: function()
         { 
-          console.log(this.count);
-          console.log(this.notifications);
-          console.log("Component created!"); 
         },
         methods: {
           getImageUrl(object) {
@@ -43,7 +40,6 @@
           },
           counter()
           {
-          console.log('niagi dri');
             this.$emit('readnotif');
           }
         }

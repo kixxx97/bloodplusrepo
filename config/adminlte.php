@@ -139,17 +139,22 @@ return [
             'text' => 'Blood Stocks',
             'icon' => 'gavel',
             'submenu' => [
+                    
                 [
                     'text' => 'Inventory',
-                    'url'  => 'admin/inventory'
+                    'url'  => 'admin/inventory',
+                    'icon' => 'minus'
                 ],
                 [
                     'text' => 'To be screened',
                     'url'  => 'admin/bloodbags',
+                    'icon' => 'minus'
                 ],
                 [
                     'text' => 'Blood Bag Screening',
                     'url' => 'admin/bloodbags/stagedbloodbag',
+                    'icon' => 'minus'
+                    
                 ]
             ]
         ],

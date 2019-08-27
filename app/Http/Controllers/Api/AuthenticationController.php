@@ -10,7 +10,9 @@ use Illuminate\Http\Request;
 use App\Log;
 use App\User;
 use App\Institution;
+use App\Unsubscribe;
 use Carbon\Carbon;
+use App\Follower;
 use App\BloodRequest;
 use App\BloodRequestDetail;
 
@@ -72,7 +74,6 @@ class AuthenticationController extends Controller
             $user = Auth::user();
             
             $message = array('user' => Auth::user(), 
-                'unreadNotif' => $count, 
                 'status' => 200, 
                 'message' => 'Successful Login');
 
@@ -129,6 +130,15 @@ class AuthenticationController extends Controller
         return response()->json(['device_id' => Auth::user()->device_token]);
     }
 
+
+    public function refreshLocation(Request $request)
+    {
+        $location = Auth::user()->location;
+        $location['longitude'] = $request->input('longitude');
+        $location['latitude'] = $request->input('latitude'); 
+        Auth::user()->update([
+            'location' => $location]);
+    }
     public function getUnreadNotifications()
     {
         $count = count(Auth::user()->unReadNotifications);
@@ -137,4 +147,50 @@ class AuthenticationController extends Controller
             'status' => '200',
             'message' => 'Successfully retrieved unread notifications'));
     }
-}
+
+    public function unsubscribeUser(Request $request) {
+
+        try{
+        $user = Auth::user();
+        $attendances = $user->attendances()->delete();
+        $donations = $user->donations;
+        foreach($donations as $donation)
+        {
+            if($donation->screenedBlood)
+            $inventory = $donation->screenedBlood->components()->delete();
+            if($donation->screenedBlood)
+            $screenedBlood = $donation->screenedBlood()->delete();
+        }
+        $donations = $user->donations()->delete();
+        $requests = $user->requests()->delete();;
+        $followers = $user->followers()->detach($user->id);
+        $followedUsers = $user->followedUsers()->detach($user->id);
+        $followedInstitutions = $user->followedInstitutions($user->id)->detach();
+        $posts = $user->posts()->delete();
+        $user->delete();
+        $unsubscribe = Unsubscribe::create([
+            'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+            'reason' => $request->input('reason')]);
+        return response()->json([
+            'status' => 'Successful',
+            'message' => 'Succesfully deleted user records'
+        ]);
+        }
+        catch(\Exception $e)
+        {
+            echo $e->getMessage();
+            return response()->json([
+            'status' => 'Error',
+            'message' => 'Couldn\'t deleted user records'
+            ]);
+        }
+        //attendance
+        //donate
+        //screenedblood
+        //inventory
+        //follows
+        //bloodrequestdonor
+        //requests
+
+    }
+}           

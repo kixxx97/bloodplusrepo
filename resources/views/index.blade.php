@@ -1,403 +1,179 @@
-@extends('layouts.master')
+{{-- resources/views/admin/dashboard.blade.php --}}
 
-@section('title','BloodPlus')
+@extends('adminlte::bpage')
+
+@section('title', 'Dashboard')
+
+@section('content_header')
+      <!-- <h1>&nbsp
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Dashboard</li>
+      </ol> -->
+@stop
 
 @section('content')
+@if (session('status'))
+  <div id = "alertmsg" style="display:none">
+  &nbsp{{ session('status') }}
+  </div>
+@endif
 
-    <meta name ="csrf-token" content = "{{csrf_token() }}"/>
-    <!-- Section: home slide -->
-    <section id="intro" class="home-video text-light">
-        <div class="home-video-wrapper">
+    <!-- Main content -->
+      <!-- Small boxes (Stat box) -->
+      <div class="row">
+        <div class="col-lg-3 col-xs-6">
+          <!-- small box -->
+          <div class="small-box bg-aqua">
+            <div class="inner">
+              <h3>42</h3>
 
-        <div class="homevideo-container">
-           <ul id="valera-slippry">
-          <li>
-            <div>
-            <img class ="cover" src="{{url('/assets/img/slides/b1.jpg')}}" />
+              <p>Recent Donors<br>123</p>
             </div>
-          </li>
-          <li>
-            <div>
-            <img class ="cover" src="{{url('/assets/img/slides/b3.jpg')}}" />
+            <div class="icon">
+              <i class="ion ion-person"></i>
             </div>
-          </li>
-          <li>
-            <div>
-            <img class ="cover" src="{{url('/assets/img/slides/b4.jpg')}}"  />    
-            </div>
-          </li>
-        </ul>
+          </div>
         </div>
-        <div class="overlay">
-            <div class="text-center video-caption">
-                <div class="wow " data-wow-offset="0" data-wow-delay="0.8s">
-                    <span><img src="{{url('/assets/img/bloodplus/logoicon.png')}}" class = "site-logo" /></span><br><br>
-                    <span><img src="{{url('/assets/img/bloodplus/logoicontext.png')}}" class = "site-logo" /></span><br><br><br><br>
-                    <a style ="margin-left: 8px" href="#about" class="btn btn-lg btn-skin" id="btn-scroll">About Us</a>
-<!--                     <h1 class="big-heading font-light"><span>BloodPlus </span></h1> -->
-                </div>
-            </div>
-        </div>
-    </div>
-    </section>
-    <!-- /Section: intro -->
-    
-    
-    <!-- Navigation -->
-    <div id="navigation">
-        <nav class="navbar navbar-custom" role="navigation">
-                              <div class="container">
-                                    <div class="row">
-                                      <div class="">
-                                           <div class="site-logo">
-                                            <a href="{{ url('/')}}"><img src="{{url('/assets/img/bloodplus/LogoText.png')}}" alt="" style="margin-top:7px;"/></a>  
-                                            </div>  
-                                      </div>
-                                          
+        <!-- ./col -->
+        <div class="col-lg-3 col-xs-6">
+          <!-- small box -->
+          <div class="small-box bg-green">
+            <div class="inner">
+              <h3>43<sup style="font-size: 20px">%</sup></h3>
 
-                                          <div class="col-md-12">
-                         
-                                                      <!-- Brand and toggle get grouped for better mobile display -->
-                                          <div class="navbar-header">
-                                                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#menu">
-                                                <i class="fa fa-bars"></i>
-                                                </button>
-                                          </div>
-                                                      <!-- Collect the nav links, forms, and other content for toggling -->
-                                                      <div class="collapse navbar-collapse" id="menu">
-                                                            <ul class="nav navbar-nav navbar-right">
-                                                                  <li><a href="#intro">Home</a></li>
-                                                                  <li><a href="#about">About Us</a></li>
-                                                                   <li><a href="#service">Services</a></li>
-                                                                  <li><a href="#contact">Contact</a></li>
-                                                                @if(Auth::user())
-                                                                  <li><a href="{{url('/home')}}">{{Auth::user()->fname}}</a></li> 
-                                                                  @else
-                                                                  <li><a href="{{url('/login')}}">Login </a></li>
-                                                                  @endif
-                                                            </ul>
-                                                      </div>
-                                                      <!-- /.Navbar-collapse -->
-                             
-                                          </div>
-                                    </div>
-                              </div>
-                              <!-- /.container -->
-                        </nav>
-    </div> 
-    <!-- /Navigation -->  
+              <p>Retention Rate<br><br></p>
+            </div>
+            <div class="icon">
+              <i class="ion-ios-pulse-strong"></i>
+            </div>
+          </div>
+        </div>
+        <!-- ./col -->
+        <div class="col-lg-3 col-xs-6">
+          <!-- small box -->
+          <div class="small-box bg-yellow">
+            <div class="inner">	
+              <h3>13</h3>
 
-    <!-- Section: about -->
-    <section id="about" class="home-section color-dark bg-white">
-        <div class="container marginbot-0">
-            <div class="row">
-                <div class="col-lg-8 col-lg-offset-2">
-                    <div class="wow flipInY" data-wow-offset="0" data-wow-delay="0.4s">
-                    <div class="section-heading text-center">
-                    <h2 class="h-bold">About</h2>
-                    <div class="divider-header"></div>
-                    <p>Are you in need of blood? BloodPlus helps you find blood donors immediately. You can also avail these services offered by BloodPlus.</p>
-                    </div>
-                    </div>
-                </div>
+              <p>Active Blood Donors<br><br></p>
             </div>
+            <div class="icon">
+              <i class="ion ion-person-stalker"></i>
+            </div>
+          </div>
         </div>
-    </section>
-    <!-- /Section: about -->
-    
-    <section id="parallax2" class="donate-section parallax text-light" data-stellar-background-ratio="0.5"> 
-   <div class="container appear stats">
-            <div class="col-md-4">
-                <div class="text-center align-center color-white txt-shadow">
-                    <div style="display:inline-block">
-                        <p id="counter-coffee" class="number">51</p>
-                    </div>
-                    <div style="display:inline-block">
-                        <h2 class="number">-</h2>
-                    </div>
-                    <div style="display:inline-block">
-                        <p id="counter-music" class="number">71</p>
-                    </div>
-                    <p class="desc text-center">People request for blood everyday</p><br>
-                </div>
+        <!-- ./col -->
+        <div class="col-lg-3 col-xs-6">
+          <!-- small box -->
+          <div class="small-box bg-red">
+            <div class="inner">
+              <h3>23</h3>
+
+              <p>Finished Campaigns<br><br></p>
             </div>
-            <div class="col-md-4">
-                <div class="text-center align-center color-white txt-shadow">
-                    <div style="display:inline-block">
-                        <p id="counter-wtf" class="number">86</p>
-                    </div>
-                    <div style="display:inline-block">
-                        <h2 class="number">%</h2>
-                    </div>
-                    <p class="desc text-center">are eligible blood donors but only 7% are regular donors</p><br>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="text-center align-center color-white txt-shadow">
-                    <div style="display:inline-block">
-                        <p id="counter-heart" class="number">4</p>
-                    </div>
-                    <div style="margin-left: 10px; margin-right: 10px;display:inline-block">
-                        <h2 class="number">out of</h2>
-                    </div>
-                    <div style="display:inline-block">
-                        <p id="counter-clock" class="number">11</p>
-                    </div>
-                    <p class="desc text-center">Could not receive blood</p><br>
-                </div>
-            </div>
-<!--           <div class="col-md-12">
-            <div class="text-center">
-            <div class="col-md-2">
-            <div class="align-center color-white txt-shadow">`
-            <p id="counter-coffee" class="number">51</p><br>
+            <div class="icon">
+              <i class="ion ion-android-globe"></i>
             </div>
           </div>
-          <div class="col-md-1">
-            <div class="align-center color-white txt-shadow">
-            <br>
-              <p class="divide">to</p><br />
-            </div>
-          </div>
-          <div class="col-md-1">
-            <div class="align-center color-white txt-shadow">
-          
-            <p id="counter-music" class="number">71</p><br>
-            </div>
-          </div>
-          <div class="special col-md-1">
-            <div class="align-center color-white txt-shadow">
-            <p id="counter-clock" class="number">11</p><br>
-            </div>
-          </div>
-          <div class="special col-md-2">
-            <div class="align-center color-white txt-shadow">
-            <br>
-              <p class="divide">out of</p><br>
-            </div>
-          </div>
-          <div class="special col-md-1">
-            <div class="align-center color-white txt-shadow">
-            <p id="counter-heart" class="number">4</p><br>
-            </div>
-          </div>
-            </div>
-          </div>        
         </div>
-        <div class="row">
-            <div class="align-center color-white txt-shadow">
-            <p class="desc">People request for blood everyday<span class="special">Could not receive blood</span></p><br>
-            </div>
-        </div>
-        <br><br>
-      <br><br>
-      <div class="row appear stats" >
-          <div class="col-md-5">
-            <div class="color-white txt-shadow">
-            <span id="counter-wtf" class="number eligible">86</span><i class ="size">%</i>
-            </div>
-          </div>
+        <!-- ./col -->
       </div>
-        <div class="row">
-            <div class="align-center color-white txt-shadow">
-            <br>
-            <p class="desc1">are eligible blood donors <br>but only 7% are regular donors</p><br>
-            </div>
-      </div> -->
+      <!-- /.row -->
+      <!-- Main row -->
+      <div class="row">
+        <!-- Left col -->
+        <section class="col-lg-8 connectedSortable">
+        <div class="box box-info">
+            <div class="box-header with-border">
+              <h3 class="box-title">Logs</h3>
+            <!-- /.box-header -->
+            <div class="box-body">
+              <div class="table-responsive">
+                <table class="table no-margin">
+                  <thead>
+                  <tr>
+                    <th>LogID</th>
+                    <th>Message</th>
+                    <th>Time</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  @forelse($logs as $log)
+                  <tr>
+                    <td>{{$log->id}}</td>
+                    <td>{{$log->message}}</td>
+                    <td>{{$log->created_at->format(' F d, Y h:i A')}}</td>
+                  </tr>
+                  @empty
+                  <tr>
+                      <td> NO LOGS </td>
+                  </tr>
+                  @endforelse
+                  </tbody>
 
-</div>
-</section>
-<!-- 
-  </section>
-    <!-- Section: services -->
-    <section id="service" class="home-section color-dark bg-white">
-
-        <div class="service text-center">
-             <div class="wow flipInY" data-wow-offset="0" data-wow-delay="0.4s">
-                <div class="section-heading">
-                    <h2 class="h-bold">Services</h2>
-                    <div class="divider-header"></div>
-                </div>
+                </table>
+                  {!! $logs->render() !!}
+                
+              </div>
+              <!-- /.table-responsive -->
             </div>
-        </div>
-        <div class ="text-center">
-        <div class="container">
-        <div class="row">
-            <div class="col-xs-6 col-sm-4 col-md-3">
-                <div class="wow fadeInUp" data-wow-delay="0.2s">
-                <div class="service-box">
-                    <div class="service-icon">
-                        <span class="icon donateicon"></span> 
-                    </div>
-                    <div class="service-desc">                      
-                        <h5>Donate</h5>
-                        <p>
-                        Provides a hassle-free blood donation process if you want to donate.
-                        </p>
-                        <a href="{{ url('donate') }}" class="btn btn-skin">Donate</a>
-                    </div>
-                </div>
-                </div>
+            <!-- /.box-body -->
+            <div class="box-footer clearfix">
+              <a href="javascript:void(0)" class="btn btn-sm btn-danger btn-flat pull-right">View All Logs</a>
             </div>
-            <div class="col-xs-6 col-sm-4 col-md-3">
-                <div class="wow fadeInUp" data-wow-delay="0.2s">
-                <div class="service-box">
-                    <div class="service-icon">
-                        <span class="pe-7s-note pe-5x"></span> 
-                    </div>
-                    <div class="service-desc">
-                    <br>
-                        <h5>Request</h5>
-                        <p>
-                        Lets people find blood donors immediately.<br><br>
-                        </p>
-                        <a href="{{ url('request') }}" class="btn btn-skin">Request</a>
-                    </div>
-                </div>
-                </div>
-            </div>
-            <div class="col-xs-6 col-sm-4 col-md-3">
-                <div class="wow fadeInUp" data-wow-delay="0.2s">
-                <div class="service-box">
-                    <div class="service-icon">
-                        <span class="icon campaignicon"></span> 
-                    </div>
-                    <div class="service-desc">                     
-                        <h5>Campaigns</h5>
-                        <p>
-                        Updates you in blood letting campaigns near you.<br><br>    
-                        </p>
-                        <a href="{{ url('campaign') }}" class="btn btn-skin">Join</a>
-                    </div>
-                </div>
-                </div>
-            </div>
-            <div class="col-xs-6 col-sm-4 col-md-3">
-                <div class="wow fadeInUp" data-wow-delay="0.2s">
-                <div class="service-box">
-                    <div class="service-icon">
-                        <span class="icon bloodbanksicon"></span> 
-                    </div>
-                    <div class="service-desc">
-                        <h5>Blood Inventory</h5>
-                        <p>
-                        View the current supplies of blood in different blood banks.<br><br>
-                        </p>
-                        <a href="{{ url('inventory') }}" class="btn btn-skin">View</a>
-                    </div>
-                </div>
-                </div>
-            </div>
-        </div>      
-        </div>
-        </div>
-    </section>
-    <!-- /Section: services -->
-   <section id="parallax3" class="donate-section parallax text-light" data-stellar-background-ratio="0.5"> 
-   <div class="container appear stats">
-        <div class="row" >
-            <div class="text-center align-center ">
-            <span class="blood">Your bag of blood can save 3 lives!</span><br><br><br>
-            <a href = "{{ url('donate') }}" class="btn btn-skin donateS btn-huge">Donate now</a>
+            <!-- /.box-footer -->
           </div>
+          <!-- /.box -->
+        </section>
+        <!-- /.Left col -->
+        <!-- right col (We are only adding the ID to make the widgets sortable)-->
+        <section class="col-lg-4 connectedSortable">
 
-        </div>
-    </div>
         
-      <br><br>
-    </section>
-    <!-- Section: contact -->
-    <section id="contact" class="home-section nopadd-bot color-dark bg-white text-center">
-        <div class="container marginbot-50">
-            <div class="row">
-                <div class="col-lg-8 col-lg-offset-2">
-                    <div class="wow flipInY" data-wow-offset="0" data-wow-delay="0.4s">
-                    <div class="section-heading text-center">
-                    <br><br>
-                    <h2 class="h-bold">Contact us</h2>
-                    <div class="divider-header"></div>
-                    <p>For inquiries and suggestions, please feel free to contact us.</p>
-                    </div>
-                    </div>
-                </div>
+          <!-- Calendar -->
+          <div class="box box-info bg-green-gradient">
+            <div class="box-header">
+              <i class="fa fa-calendar"></i>
+
+              <h3 class="box-title">Calendar</h3>
+              <!-- tools box -->
+              <!-- /. tools -->
             </div>
+            <!-- /.box-header -->
+            <div class="box-body no-padding">
+              <!--The calendar -->
+              <div id="calendar" style="width: 100%"></div>
+            </div>
+            <!-- /.box-body -->
+              <!-- /.row -->
+          </div>
+          <!-- /.box -->
 
-        </div>
-        
-        <div class="container">
+        </section>
+        <!-- right col -->
+      </div>
+      <!-- /.row (main row) -->
+</section></div>
 
-            <div class="row marginbot-80">
-                <div class="col-md-8 col-md-offset-2">
-                    <div id="sendmessage">Your message has been sent. Thank you!</div>
-                    <div id="errormessage"></div>
-                    <form action="{{ url('/') }}" method="post" role="form" class="contactForm" id = "contactForm">
-                        <div class="form-group">
-                            <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" data-rule="minlen:4" data-msg="Please enter at least 4 chars" required />
-                            <div class="validation"></div>
-                        </div>
-                        <div class="form-group">
-                            <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" data-rule="email" data-msg="Please enter a valid email" required />
-                            <div class="validation"></div>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" data-rule="minlen:4" data-msg="Please enter at least 8 chars of subject" />
-                            <div class="validation"></div>
-                        </div>
-                        <div class="form-group">
-                            <textarea class="form-control" name="message" id = "message" rows="5" data-rule="required" data-msg="Please write something for us" placeholder="Message" required></textarea>
-                            <div class="validation"></div>
-                        </div>
-                        
-                        <div class="text-center"><button id ="contactSubmit" type="submit" class="btn btn-skin btn-lg btn-block">Send Message</button></div>
-                    </form>
-                </div>
-            </div>  
+@stop
 
+@section('css')
+	<link rel="stylesheet" href="{{ asset('theme/css/datepicker3.css') }}">
+  <link href="{{asset('theme/js/DataTables/media/css/dataTables.bootstrap.min.css')}}" rel ="stylesheet" type ="text/css">
+  <link href="{{asset('theme/js/DataTables/media/css/jquery.dataTables.min.css')}}" rel ="stylesheet" type ="text/css">
+@stop
 
-        </div>
-    </section>
-    @include('layouts.footer')
-    <script>
+@section('js')
+	<script src="{{ asset('theme/js/bootstrap-datepicker.js') }}"></script>
+	<script>
+  $("#calendar").datepicker();
 
-    $("#contactSubmit").on("click",function($e) {
-            console.log($("#contactForm").serialize());
-            $e.preventDefault();
-            if($("#name").val() == "" && $("#email").val() == "")
-            {
-                alert("Please fill up either name or email");
-            }
-            else if($("#message").val() == "")
-            {
-                alert("Please fill up content of your message");
-            }
-            else
-            {
-                var $inquiry = $("#contactForm").serialize();
-                sendInquiry($inquiry);
-                $('#contactForm')[0].reset();
-            }
-            
-
+  $(document).ready(function() {
+  var message = document.getElementById('alertmsg').innerHTML;
+      if(message != '')
+      alert(message);
     });
-
-    function sendInquiry(data){
-        var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
-
-        $.ajax({
-            method: "post",
-            url: "{{ url('sendinquiry') }}",
-            data: {'_token': CSRF_TOKEN,
-                data},
-            success:function(data) {
-                console.log(data);
-                alert('Thank you for sending us your feedback/inquiry');
-
-            },
-            error: function(xhr) {
-                console.log(xhr.status);
-            }
-        });
-    }
-    </script>
-    <!-- /Section: contact -->       
+	</script>
 @stop

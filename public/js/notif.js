@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 163);
+/******/ 	return __webpack_require__(__webpack_require__.s = 168);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -71,7 +71,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {var require;//! moment.js
-//! version : 2.19.1
+//! version : 2.20.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -731,7 +731,7 @@ var matchTimestamp = /[+-]?\d+(\.\d{1,3})?/; // 123456789 123456789.123
 
 // any word (or two) characters or numbers including two/three word month in arabic.
 // includes scottish gaelic two word and hyphenated months
-var matchWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
+var matchWord = /[0-9]{0,256}['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFF07\uFF10-\uFFEF]{1,256}|[\u0600-\u06FF\/]{1,256}(\s*?[\u0600-\u06FF]{1,256}){1,2}/i;
 
 
 var regexes = {};
@@ -886,7 +886,7 @@ function get (mom, unit) {
 
 function set$1 (mom, unit, value) {
     if (mom.isValid() && !isNaN(value)) {
-        if (unit === 'FullYear' && isLeapYear(mom.year())) {
+        if (unit === 'FullYear' && isLeapYear(mom.year()) && mom.month() === 1 && mom.date() === 29) {
             mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value, mom.month(), daysInMonth(value, mom.month()));
         }
         else {
@@ -1914,7 +1914,7 @@ function loadLocale(name) {
         try {
             oldLocale = globalLocale._abbr;
             var aliasedRequire = require;
-            __webpack_require__(156)("./" + name);
+            __webpack_require__(158)("./" + name);
             getSetGlobalLocale(oldLocale);
         } catch (e) {}
     }
@@ -1992,10 +1992,11 @@ function defineLocale (name, config) {
 
 function updateLocale(name, config) {
     if (config != null) {
-        var locale, parentConfig = baseConfig;
+        var locale, tmpLocale, parentConfig = baseConfig;
         // MERGE
-        if (locales[name] != null) {
-            parentConfig = locales[name]._config;
+        tmpLocale = loadLocale(name);
+        if (tmpLocale != null) {
+            parentConfig = tmpLocale._config;
         }
         config = mergeConfigs(parentConfig, config);
         locale = new Locale(config);
@@ -2100,7 +2101,7 @@ function currentDateArray(config) {
 // note: all values past the year are optional and will default to the lowest possible value.
 // [year, month, day , hour, minute, second, millisecond]
 function configFromArray (config) {
-    var i, date, input = [], currentDate, yearToUse;
+    var i, date, input = [], currentDate, expectedWeekday, yearToUse;
 
     if (config._d) {
         return;
@@ -2150,6 +2151,8 @@ function configFromArray (config) {
     }
 
     config._d = (config._useUTC ? createUTCDate : createDate).apply(null, input);
+    expectedWeekday = config._useUTC ? config._d.getUTCDay() : config._d.getDay();
+
     // Apply timezone offset from input. The actual utcOffset can be changed
     // with parseZone.
     if (config._tzm != null) {
@@ -2161,7 +2164,7 @@ function configFromArray (config) {
     }
 
     // check for mismatching day of week
-    if (config._w && typeof config._w.d !== 'undefined' && config._w.d !== config._d.getDay()) {
+    if (config._w && typeof config._w.d !== 'undefined' && config._w.d !== expectedWeekday) {
         getParsingFlags(config).weekdayMismatch = true;
     }
 }
@@ -3369,19 +3372,24 @@ function toString () {
     return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
 }
 
-function toISOString() {
+function toISOString(keepOffset) {
     if (!this.isValid()) {
         return null;
     }
-    var m = this.clone().utc();
+    var utc = keepOffset !== true;
+    var m = utc ? this.clone().utc() : this;
     if (m.year() < 0 || m.year() > 9999) {
-        return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+        return formatMoment(m, utc ? 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]' : 'YYYYYY-MM-DD[T]HH:mm:ss.SSSZ');
     }
     if (isFunction(Date.prototype.toISOString)) {
         // native implementation is ~50x faster, use it when we can
-        return this.toDate().toISOString();
+        if (utc) {
+            return this.toDate().toISOString();
+        } else {
+            return new Date(this._d.valueOf()).toISOString().replace('Z', formatMoment(m, 'Z'));
+        }
     }
-    return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
+    return formatMoment(m, utc ? 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]' : 'YYYY-MM-DD[T]HH:mm:ss.SSSZ');
 }
 
 /**
@@ -3737,7 +3745,7 @@ addRegexToken('Do', function (isStrict, locale) {
 
 addParseToken(['D', 'DD'], DATE);
 addParseToken('Do', function (input, array) {
-    array[DATE] = toInt(input.match(match1to2)[0], 10);
+    array[DATE] = toInt(input.match(match1to2)[0]);
 });
 
 // MOMENTS
@@ -4549,7 +4557,7 @@ addParseToken('x', function (input, array, config) {
 // Side effect imports
 
 
-hooks.version = '2.19.1';
+hooks.version = '2.20.1';
 
 setHookCallback(createLocal);
 
@@ -4581,17 +4589,57 @@ hooks.relativeTimeThreshold = getSetRelativeTimeThreshold;
 hooks.calendarFormat        = getCalendarFormat;
 hooks.prototype             = proto;
 
+// currently HTML5 input type only supports 24-hour formats
+hooks.HTML5_FMT = {
+    DATETIME_LOCAL: 'YYYY-MM-DDTHH:mm',             // <input type="datetime-local" />
+    DATETIME_LOCAL_SECONDS: 'YYYY-MM-DDTHH:mm:ss',  // <input type="datetime-local" step="1" />
+    DATETIME_LOCAL_MS: 'YYYY-MM-DDTHH:mm:ss.SSS',   // <input type="datetime-local" step="0.001" />
+    DATE: 'YYYY-MM-DD',                             // <input type="date" />
+    TIME: 'HH:mm',                                  // <input type="time" />
+    TIME_SECONDS: 'HH:mm:ss',                       // <input type="time" step="1" />
+    TIME_MS: 'HH:mm:ss.SSS',                        // <input type="time" step="0.001" />
+    WEEK: 'YYYY-[W]WW',                             // <input type="week" />
+    MONTH: 'YYYY-MM'                                // <input type="month" />
+};
+
 return hooks;
 
 })));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(128)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)(module)))
 
 /***/ }),
 /* 1 */,
 /* 2 */,
 /* 3 */,
-/* 4 */,
+/* 4 */
+/***/ (function(module, exports) {
+
+module.exports = function(module) {
+	if(!module.webpackPolyfill) {
+		module.deprecate = function() {};
+		module.paths = [];
+		// module.parent = undefined by default
+		if(!module.children) module.children = [];
+		Object.defineProperty(module, "loaded", {
+			enumerable: true,
+			get: function() {
+				return module.l;
+			}
+		});
+		Object.defineProperty(module, "id", {
+			enumerable: true,
+			get: function() {
+				return module.i;
+			}
+		});
+		module.webpackPolyfill = 1;
+	}
+	return module;
+};
+
+
+/***/ }),
 /* 5 */,
 /* 6 */,
 /* 7 */,
@@ -4648,6 +4696,7 @@ var af = moment.defineLocale('af', {
         future : 'oor %s',
         past : '%s gelede',
         s : '\'n paar sekondes',
+        ss : '%d sekondes',
         m : '\'n minuut',
         mm : '%d minute',
         h : '\'n uur',
@@ -4716,6 +4765,7 @@ var arDz = moment.defineLocale('ar-dz', {
         future : 'في %s',
         past : 'منذ %s',
         s : 'ثوان',
+        ss : '%d ثانية',
         m : 'دقيقة',
         mm : '%d دقائق',
         h : 'ساعة',
@@ -4780,6 +4830,7 @@ var arKw = moment.defineLocale('ar-kw', {
         future : 'في %s',
         past : 'منذ %s',
         s : 'ثوان',
+        ss : '%d ثانية',
         m : 'دقيقة',
         mm : '%d دقائق',
         h : 'ساعة',
@@ -4903,6 +4954,7 @@ var arLy = moment.defineLocale('ar-ly', {
         future : 'بعد %s',
         past : 'منذ %s',
         s : pluralize('s'),
+        ss : pluralize('s'),
         m : pluralize('m'),
         mm : pluralize('m'),
         h : pluralize('h'),
@@ -4976,6 +5028,7 @@ var arMa = moment.defineLocale('ar-ma', {
         future : 'في %s',
         past : 'منذ %s',
         s : 'ثوان',
+        ss : '%d ثانية',
         m : 'دقيقة',
         mm : '%d دقائق',
         h : 'ساعة',
@@ -5076,6 +5129,7 @@ var arSa = moment.defineLocale('ar-sa', {
         future : 'في %s',
         past : 'منذ %s',
         s : 'ثوان',
+        ss : '%d ثانية',
         m : 'دقيقة',
         mm : '%d دقائق',
         h : 'ساعة',
@@ -5150,6 +5204,7 @@ var arTn = moment.defineLocale('ar-tn', {
         future: 'في %s',
         past: 'منذ %s',
         s: 'ثوان',
+        ss : '%d ثانية',
         m: 'دقيقة',
         mm: '%d دقائق',
         h: 'ساعة',
@@ -5235,18 +5290,18 @@ var pluralize = function (u) {
     };
 };
 var months = [
-    'كانون الثاني يناير',
-    'شباط فبراير',
-    'آذار مارس',
-    'نيسان أبريل',
-    'أيار مايو',
-    'حزيران يونيو',
-    'تموز يوليو',
-    'آب أغسطس',
-    'أيلول سبتمبر',
-    'تشرين الأول أكتوبر',
-    'تشرين الثاني نوفمبر',
-    'كانون الأول ديسمبر'
+    'يناير',
+    'فبراير',
+    'مارس',
+    'أبريل',
+    'مايو',
+    'يونيو',
+    'يوليو',
+    'أغسطس',
+    'سبتمبر',
+    'أكتوبر',
+    'نوفمبر',
+    'ديسمبر'
 ];
 
 var ar = moment.defineLocale('ar', {
@@ -5287,6 +5342,7 @@ var ar = moment.defineLocale('ar', {
         future : 'بعد %s',
         past : 'منذ %s',
         s : pluralize('s'),
+        ss : pluralize('s'),
         m : pluralize('m'),
         mm : pluralize('m'),
         h : pluralize('h'),
@@ -5382,6 +5438,7 @@ var az = moment.defineLocale('az', {
         future : '%s sonra',
         past : '%s əvvəl',
         s : 'birneçə saniyyə',
+        ss : '%d saniyə',
         m : 'bir dəqiqə',
         mm : '%d dəqiqə',
         h : 'bir saat',
@@ -5452,6 +5509,7 @@ function plural(word, num) {
 }
 function relativeTimeWithPlural(number, withoutSuffix, key) {
     var format = {
+        'ss': withoutSuffix ? 'секунда_секунды_секунд' : 'секунду_секунды_секунд',
         'mm': withoutSuffix ? 'хвіліна_хвіліны_хвілін' : 'хвіліну_хвіліны_хвілін',
         'hh': withoutSuffix ? 'гадзіна_гадзіны_гадзін' : 'гадзіну_гадзіны_гадзін',
         'dd': 'дзень_дні_дзён',
@@ -5621,6 +5679,7 @@ var bg = moment.defineLocale('bg', {
         future : 'след %s',
         past : 'преди %s',
         s : 'няколко секунди',
+        ss : '%d секунди',
         m : 'минута',
         mm : '%d минути',
         h : 'час',
@@ -5705,6 +5764,7 @@ var bm = moment.defineLocale('bm', {
         future : '%s kɔnɔ',
         past : 'a bɛ %s bɔ',
         s : 'sanga dama dama',
+        ss : 'sekondi %d',
         m : 'miniti kelen',
         mm : 'miniti %d',
         h : 'lɛrɛ kelen',
@@ -5793,6 +5853,7 @@ var bn = moment.defineLocale('bn', {
         future : '%s পরে',
         past : '%s আগে',
         s : 'কয়েক সেকেন্ড',
+        ss : '%d সেকেন্ড',
         m : 'এক মিনিট',
         mm : '%d মিনিট',
         h : 'এক ঘন্টা',
@@ -5917,6 +5978,7 @@ var bo = moment.defineLocale('bo', {
         future : '%s ལ་',
         past : '%s སྔན་ལ',
         s : 'ལམ་སང',
+        ss : '%d སྐར་ཆ།',
         m : 'སྐར་མ་གཅིག',
         mm : '%d སྐར་མ',
         h : 'ཆུ་ཚོད་གཅིག',
@@ -6061,6 +6123,7 @@ var br = moment.defineLocale('br', {
         future : 'a-benn %s',
         past : '%s \'zo',
         s : 'un nebeud segondennoù',
+        ss : '%d eilenn',
         m : 'ur vunutenn',
         mm : relativeTimeWithMutation,
         h : 'un eur',
@@ -6107,6 +6170,15 @@ return br;
 function translate(number, withoutSuffix, key) {
     var result = number + ' ';
     switch (key) {
+        case 'ss':
+            if (number === 1) {
+                result += 'sekunda';
+            } else if (number === 2 || number === 3 || number === 4) {
+                result += 'sekunde';
+            } else {
+                result += 'sekundi';
+            }
+            return result;
         case 'm':
             return withoutSuffix ? 'jedna minuta' : 'jedne minute';
         case 'mm':
@@ -6212,6 +6284,7 @@ var bs = moment.defineLocale('bs', {
         future : 'za %s',
         past   : 'prije %s',
         s      : 'par sekundi',
+        ss     : translate,
         m      : translate,
         mm     : translate,
         h      : translate,
@@ -6296,6 +6369,7 @@ var ca = moment.defineLocale('ca', {
         future : 'd\'aquí %s',
         past : 'fa %s',
         s : 'uns segons',
+        ss : '%d segons',
         m : 'un minut',
         mm : '%d minuts',
         h : 'una hora',
@@ -6354,6 +6428,13 @@ function translate(number, withoutSuffix, key, isFuture) {
     switch (key) {
         case 's':  // a few seconds / in a few seconds / a few seconds ago
             return (withoutSuffix || isFuture) ? 'pár sekund' : 'pár sekundami';
+        case 'ss': // 9 seconds / in 9 seconds / 9 seconds ago
+            if (withoutSuffix || isFuture) {
+                return result + (plural(number) ? 'sekundy' : 'sekund');
+            } else {
+                return result + 'sekundami';
+            }
+            break;
         case 'm':  // a minute / in a minute / a minute ago
             return withoutSuffix ? 'minuta' : (isFuture ? 'minutu' : 'minutou');
         case 'mm': // 9 minutes / in 9 minutes / 9 minutes ago
@@ -6482,6 +6563,7 @@ var cs = moment.defineLocale('cs', {
         future : 'za %s',
         past : 'před %s',
         s : translate,
+        ss : translate,
         m : translate,
         mm : translate,
         h : translate,
@@ -6550,6 +6632,7 @@ var cv = moment.defineLocale('cv', {
         },
         past : '%s каялла',
         s : 'пӗр-ик ҫеккунт',
+        ss : '%d ҫеккунт',
         m : 'пӗр минут',
         mm : '%d минут',
         h : 'пӗр сехет',
@@ -6618,6 +6701,7 @@ var cy = moment.defineLocale('cy', {
         future: 'mewn %s',
         past: '%s yn ôl',
         s: 'ychydig eiliadau',
+        ss: '%d eiliad',
         m: 'munud',
         mm: '%d munud',
         h: 'awr',
@@ -6701,6 +6785,7 @@ var da = moment.defineLocale('da', {
         future : 'om %s',
         past : '%s siden',
         s : 'få sekunder',
+        ss : '%d sekunder',
         m : 'et minut',
         mm : '%d minutter',
         h : 'en time',
@@ -6785,6 +6870,7 @@ var deAt = moment.defineLocale('de-at', {
         future : 'in %s',
         past : 'vor %s',
         s : 'ein paar Sekunden',
+        ss : '%d Sekunden',
         m : processRelativeTime,
         mm : '%d Minuten',
         h : processRelativeTime,
@@ -6849,12 +6935,12 @@ var deCh = moment.defineLocale('de-ch', {
     weekdaysMin : 'So_Mo_Di_Mi_Do_Fr_Sa'.split('_'),
     weekdaysParseExact : true,
     longDateFormat : {
-        LT: 'HH.mm',
-        LTS: 'HH.mm.ss',
+        LT: 'HH:mm',
+        LTS: 'HH:mm:ss',
         L : 'DD.MM.YYYY',
         LL : 'D. MMMM YYYY',
-        LLL : 'D. MMMM YYYY HH.mm',
-        LLLL : 'dddd, D. MMMM YYYY HH.mm'
+        LLL : 'D. MMMM YYYY HH:mm',
+        LLLL : 'dddd, D. MMMM YYYY HH:mm'
     },
     calendar : {
         sameDay: '[heute um] LT [Uhr]',
@@ -6868,6 +6954,7 @@ var deCh = moment.defineLocale('de-ch', {
         future : 'in %s',
         past : 'vor %s',
         s : 'ein paar Sekunden',
+        ss : '%d Sekunden',
         m : processRelativeTime,
         mm : '%d Minuten',
         h : processRelativeTime,
@@ -6951,6 +7038,7 @@ var de = moment.defineLocale('de', {
         future : 'in %s',
         past : 'vor %s',
         s : 'ein paar Sekunden',
+        ss : '%d Sekunden',
         m : processRelativeTime,
         mm : '%d Minuten',
         h : processRelativeTime,
@@ -7052,6 +7140,7 @@ var dv = moment.defineLocale('dv', {
         future : 'ތެރޭގައި %s',
         past : 'ކުރިން %s',
         s : 'ސިކުންތުކޮޅެއް',
+        ss : 'd% ސިކުންތު',
         m : 'މިނިޓެއް',
         mm : 'މިނިޓު %d',
         h : 'ގަޑިއިރެއް',
@@ -7161,6 +7250,7 @@ var el = moment.defineLocale('el', {
         future : 'σε %s',
         past : '%s πριν',
         s : 'λίγα δευτερόλεπτα',
+        ss : '%d δευτερόλεπτα',
         m : 'ένα λεπτό',
         mm : '%d λεπτά',
         h : 'μία ώρα',
@@ -7226,6 +7316,7 @@ var enAu = moment.defineLocale('en-au', {
         future : 'in %s',
         past : '%s ago',
         s : 'a few seconds',
+        ss : '%d seconds',
         m : 'a minute',
         mm : '%d minutes',
         h : 'an hour',
@@ -7298,6 +7389,7 @@ var enCa = moment.defineLocale('en-ca', {
         future : 'in %s',
         past : '%s ago',
         s : 'a few seconds',
+        ss : '%d seconds',
         m : 'a minute',
         mm : '%d minutes',
         h : 'an hour',
@@ -7366,6 +7458,7 @@ var enGb = moment.defineLocale('en-gb', {
         future : 'in %s',
         past : '%s ago',
         s : 'a few seconds',
+        ss : '%d seconds',
         m : 'a minute',
         mm : '%d minutes',
         h : 'an hour',
@@ -7438,6 +7531,7 @@ var enIe = moment.defineLocale('en-ie', {
         future : 'in %s',
         past : '%s ago',
         s : 'a few seconds',
+        ss : '%d seconds',
         m : 'a minute',
         mm : '%d minutes',
         h : 'an hour',
@@ -7510,6 +7604,7 @@ var enNz = moment.defineLocale('en-nz', {
         future : 'in %s',
         past : '%s ago',
         s : 'a few seconds',
+        ss : '%d seconds',
         m : 'a minute',
         mm : '%d minutes',
         h : 'an hour',
@@ -7595,6 +7690,7 @@ var eo = moment.defineLocale('eo', {
         future : 'post %s',
         past : 'antaŭ %s',
         s : 'sekundoj',
+        ss : '%d sekundoj',
         m : 'minuto',
         mm : '%d minutoj',
         h : 'horo',
@@ -7691,6 +7787,7 @@ var esDo = moment.defineLocale('es-do', {
         future : 'en %s',
         past : 'hace %s',
         s : 'unos segundos',
+        ss : '%d segundos',
         m : 'un minuto',
         mm : '%d minutos',
         h : 'una hora',
@@ -7720,7 +7817,7 @@ return esDo;
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
-//! locale : Spanish(United State) [es-us]
+//! locale : Spanish (United States) [es-us]
 //! author : bustta : https://github.com/bustta
 
 ;(function (global, factory) {
@@ -7750,12 +7847,12 @@ var esUs = moment.defineLocale('es-us', {
     weekdaysMin : 'do_lu_ma_mi_ju_vi_sá'.split('_'),
     weekdaysParseExact : true,
     longDateFormat : {
-        LT : 'H:mm',
-        LTS : 'H:mm:ss',
+        LT : 'h:mm A',
+        LTS : 'h:mm:ss A',
         L : 'MM/DD/YYYY',
         LL : 'MMMM [de] D [de] YYYY',
-        LLL : 'MMMM [de] D [de] YYYY H:mm',
-        LLLL : 'dddd, MMMM [de] D [de] YYYY H:mm'
+        LLL : 'MMMM [de] D [de] YYYY h:mm A',
+        LLLL : 'dddd, MMMM [de] D [de] YYYY h:mm A'
     },
     calendar : {
         sameDay : function () {
@@ -7779,6 +7876,7 @@ var esUs = moment.defineLocale('es-us', {
         future : 'en %s',
         past : 'hace %s',
         s : 'unos segundos',
+        ss : '%d segundos',
         m : 'un minuto',
         mm : '%d minutos',
         h : 'una hora',
@@ -7876,6 +7974,7 @@ var es = moment.defineLocale('es', {
         future : 'en %s',
         past : 'hace %s',
         s : 'unos segundos',
+        ss : '%d segundos',
         m : 'un minuto',
         mm : '%d minutos',
         h : 'una hora',
@@ -7919,6 +8018,7 @@ return es;
 function processRelativeTime(number, withoutSuffix, key, isFuture) {
     var format = {
         's' : ['mõne sekundi', 'mõni sekund', 'paar sekundit'],
+        'ss': [number + 'sekundi', number + 'sekundit'],
         'm' : ['ühe minuti', 'üks minut'],
         'mm': [number + ' minuti', number + ' minutit'],
         'h' : ['ühe tunni', 'tund aega', 'üks tund'],
@@ -7961,6 +8061,7 @@ var et = moment.defineLocale('et', {
         future : '%s pärast',
         past   : '%s tagasi',
         s      : processRelativeTime,
+        ss     : processRelativeTime,
         m      : processRelativeTime,
         mm     : processRelativeTime,
         h      : processRelativeTime,
@@ -8032,6 +8133,7 @@ var eu = moment.defineLocale('eu', {
         future : '%s barru',
         past : 'duela %s',
         s : 'segundo batzuk',
+        ss : '%d segundo',
         m : 'minutu bat',
         mm : '%d minutu',
         h : 'ordu bat',
@@ -8134,6 +8236,7 @@ var fa = moment.defineLocale('fa', {
         future : 'در %s',
         past : '%s پیش',
         s : 'چند ثانیه',
+        ss : 'ثانیه d%',
         m : 'یک دقیقه',
         mm : '%d دقیقه',
         h : 'یک ساعت',
@@ -8193,6 +8296,8 @@ function translate(number, withoutSuffix, key, isFuture) {
     switch (key) {
         case 's':
             return isFuture ? 'muutaman sekunnin' : 'muutama sekunti';
+        case 'ss':
+            return isFuture ? 'sekunnin' : 'sekuntia';
         case 'm':
             return isFuture ? 'minuutin' : 'minuutti';
         case 'mm':
@@ -8256,6 +8361,7 @@ var fi = moment.defineLocale('fi', {
         future : '%s päästä',
         past : '%s sitten',
         s : translate,
+        ss : translate,
         m : translate,
         mm : translate,
         h : translate,
@@ -8321,6 +8427,7 @@ var fo = moment.defineLocale('fo', {
         future : 'um %s',
         past : '%s síðani',
         s : 'fá sekund',
+        ss : '%d sekundir',
         m : 'ein minutt',
         mm : '%d minuttir',
         h : 'ein tími',
@@ -8366,7 +8473,7 @@ var frCa = moment.defineLocale('fr-ca', {
     monthsParseExact : true,
     weekdays : 'dimanche_lundi_mardi_mercredi_jeudi_vendredi_samedi'.split('_'),
     weekdaysShort : 'dim._lun._mar._mer._jeu._ven._sam.'.split('_'),
-    weekdaysMin : 'Di_Lu_Ma_Me_Je_Ve_Sa'.split('_'),
+    weekdaysMin : 'di_lu_ma_me_je_ve_sa'.split('_'),
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'HH:mm',
@@ -8388,6 +8495,7 @@ var frCa = moment.defineLocale('fr-ca', {
         future : 'dans %s',
         past : 'il y a %s',
         s : 'quelques secondes',
+        ss : '%d secondes',
         m : 'une minute',
         mm : '%d minutes',
         h : 'une heure',
@@ -8445,7 +8553,7 @@ var frCh = moment.defineLocale('fr-ch', {
     monthsParseExact : true,
     weekdays : 'dimanche_lundi_mardi_mercredi_jeudi_vendredi_samedi'.split('_'),
     weekdaysShort : 'dim._lun._mar._mer._jeu._ven._sam.'.split('_'),
-    weekdaysMin : 'Di_Lu_Ma_Me_Je_Ve_Sa'.split('_'),
+    weekdaysMin : 'di_lu_ma_me_je_ve_sa'.split('_'),
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'HH:mm',
@@ -8467,6 +8575,7 @@ var frCh = moment.defineLocale('fr-ch', {
         future : 'dans %s',
         past : 'il y a %s',
         s : 'quelques secondes',
+        ss : '%d secondes',
         m : 'une minute',
         mm : '%d minutes',
         h : 'une heure',
@@ -8528,7 +8637,7 @@ var fr = moment.defineLocale('fr', {
     monthsParseExact : true,
     weekdays : 'dimanche_lundi_mardi_mercredi_jeudi_vendredi_samedi'.split('_'),
     weekdaysShort : 'dim._lun._mar._mer._jeu._ven._sam.'.split('_'),
-    weekdaysMin : 'Di_Lu_Ma_Me_Je_Ve_Sa'.split('_'),
+    weekdaysMin : 'di_lu_ma_me_je_ve_sa'.split('_'),
     weekdaysParseExact : true,
     longDateFormat : {
         LT : 'HH:mm',
@@ -8550,6 +8659,7 @@ var fr = moment.defineLocale('fr', {
         future : 'dans %s',
         past : 'il y a %s',
         s : 'quelques secondes',
+        ss : '%d secondes',
         m : 'une minute',
         mm : '%d minutes',
         h : 'une heure',
@@ -8649,6 +8759,7 @@ var fy = moment.defineLocale('fy', {
         future : 'oer %s',
         past : '%s lyn',
         s : 'in pear sekonden',
+        ss : '%d sekonden',
         m : 'ien minút',
         mm : '%d minuten',
         h : 'ien oere',
@@ -8729,6 +8840,7 @@ var gd = moment.defineLocale('gd', {
         future : 'ann an %s',
         past : 'bho chionn %s',
         s : 'beagan diogan',
+        ss : '%d diogan',
         m : 'mionaid',
         mm : '%d mionaidean',
         h : 'uair',
@@ -8814,6 +8926,7 @@ var gl = moment.defineLocale('gl', {
         },
         past : 'hai %s',
         s : 'uns segundos',
+        ss : '%d segundos',
         m : 'un minuto',
         mm : '%d minutos',
         h : 'unha hora',
@@ -8856,6 +8969,7 @@ return gl;
 function processRelativeTime(number, withoutSuffix, key, isFuture) {
     var format = {
         's': ['thodde secondanim', 'thodde second'],
+        'ss': [number + ' secondanim', number + ' second'],
         'm': ['eka mintan', 'ek minute'],
         'mm': [number + ' mintanim', number + ' mintam'],
         'h': ['eka horan', 'ek hor'],
@@ -8899,6 +9013,7 @@ var gomLatn = moment.defineLocale('gom-latn', {
         future : '%s',
         past : '%s adim',
         s : processRelativeTime,
+        ss : processRelativeTime,
         m : processRelativeTime,
         mm : processRelativeTime,
         h : processRelativeTime,
@@ -9032,6 +9147,7 @@ var gu = moment.defineLocale('gu', {
         future: '%s મા',
         past: '%s પેહલા',
         s: 'અમુક પળો',
+        ss: '%d સેકંડ',
         m: 'એક મિનિટ',
         mm: '%d મિનિટ',
         h: 'એક કલાક',
@@ -9141,6 +9257,7 @@ var he = moment.defineLocale('he', {
         future : 'בעוד %s',
         past : 'לפני %s',
         s : 'מספר שניות',
+        ss : '%d שניות',
         m : 'דקה',
         mm : '%d דקות',
         h : 'שעה',
@@ -9265,6 +9382,7 @@ var hi = moment.defineLocale('hi', {
         future : '%s में',
         past : '%s पहले',
         s : 'कुछ ही क्षण',
+        ss : '%d सेकंड',
         m : 'एक मिनट',
         mm : '%d मिनट',
         h : 'एक घंटा',
@@ -9345,6 +9463,15 @@ return hi;
 function translate(number, withoutSuffix, key) {
     var result = number + ' ';
     switch (key) {
+        case 'ss':
+            if (number === 1) {
+                result += 'sekunda';
+            } else if (number === 2 || number === 3 || number === 4) {
+                result += 'sekunde';
+            } else {
+                result += 'sekundi';
+            }
+            return result;
         case 'm':
             return withoutSuffix ? 'jedna minuta' : 'jedne minute';
         case 'mm':
@@ -9453,6 +9580,7 @@ var hr = moment.defineLocale('hr', {
         future : 'za %s',
         past   : 'prije %s',
         s      : 'par sekundi',
+        ss     : translate,
         m      : translate,
         mm     : translate,
         h      : translate,
@@ -9494,11 +9622,12 @@ return hr;
 
 var weekEndings = 'vasárnap hétfőn kedden szerdán csütörtökön pénteken szombaton'.split(' ');
 function translate(number, withoutSuffix, key, isFuture) {
-    var num = number,
-        suffix;
+    var num = number;
     switch (key) {
         case 's':
             return (isFuture || withoutSuffix) ? 'néhány másodperc' : 'néhány másodperce';
+        case 'ss':
+            return num + (isFuture || withoutSuffix) ? ' másodperc' : ' másodperce';
         case 'm':
             return 'egy' + (isFuture || withoutSuffix ? ' perc' : ' perce');
         case 'mm':
@@ -9567,6 +9696,7 @@ var hu = moment.defineLocale('hu', {
         future : '%s múlva',
         past : '%s',
         s : translate,
+        ss : translate,
         m : translate,
         mm : translate,
         h : translate,
@@ -9639,6 +9769,7 @@ var hyAm = moment.defineLocale('hy-am', {
         future : '%s հետո',
         past : '%s առաջ',
         s : 'մի քանի վայրկյան',
+        ss : '%d վայրկյան',
         m : 'րոպե',
         mm : '%d րոպե',
         h : 'ժամ',
@@ -9757,6 +9888,7 @@ var id = moment.defineLocale('id', {
         future : 'dalam %s',
         past : '%s yang lalu',
         s : 'beberapa detik',
+        ss : '%d detik',
         m : 'semenit',
         mm : '%d menit',
         h : 'sejam',
@@ -9807,6 +9939,11 @@ function translate(number, withoutSuffix, key, isFuture) {
     switch (key) {
         case 's':
             return withoutSuffix || isFuture ? 'nokkrar sekúndur' : 'nokkrum sekúndum';
+        case 'ss':
+            if (plural(number)) {
+                return result + (withoutSuffix || isFuture ? 'sekúndur' : 'sekúndum');
+            }
+            return result + 'sekúnda';
         case 'm':
             return withoutSuffix ? 'mínúta' : 'mínútu';
         case 'mm':
@@ -9887,6 +10024,7 @@ var is = moment.defineLocale('is', {
         future : 'eftir %s',
         past : 'fyrir %s síðan',
         s : translate,
+        ss : translate,
         m : translate,
         mm : translate,
         h : 'klukkustund',
@@ -9939,7 +10077,7 @@ var it = moment.defineLocale('it', {
         L : 'DD/MM/YYYY',
         LL : 'D MMMM YYYY',
         LLL : 'D MMMM YYYY HH:mm',
-        LLLL : 'dddd, D MMMM YYYY HH:mm'
+        LLLL : 'dddd D MMMM YYYY HH:mm'
     },
     calendar : {
         sameDay: '[Oggi alle] LT',
@@ -9962,6 +10100,7 @@ var it = moment.defineLocale('it', {
         },
         past : '%s fa',
         s : 'alcuni secondi',
+        ss : '%d secondi',
         m : 'un minuto',
         mm : '%d minuti',
         h : 'un\'ora',
@@ -10053,6 +10192,7 @@ var ja = moment.defineLocale('ja', {
         future : '%s後',
         past : '%s前',
         s : '数秒',
+        ss : '%d秒',
         m : '1分',
         mm : '%d分',
         h : '1時間',
@@ -10137,6 +10277,7 @@ var jv = moment.defineLocale('jv', {
         future : 'wonten ing %s',
         past : '%s ingkang kepengker',
         s : 'sawetawis detik',
+        ss : '%d detik',
         m : 'setunggal menit',
         mm : '%d menit',
         h : 'setunggal jam',
@@ -10218,6 +10359,7 @@ var ka = moment.defineLocale('ka', {
             }
         },
         s : 'რამდენიმე წამი',
+        ss : '%d წამი',
         m : 'წუთი',
         mm : '%d წუთი',
         h : 'საათი',
@@ -10317,6 +10459,7 @@ var kk = moment.defineLocale('kk', {
         future : '%s ішінде',
         past : '%s бұрын',
         s : 'бірнеше секунд',
+        ss : '%d секунд',
         m : 'бір минут',
         mm : '%d минут',
         h : 'бір сағат',
@@ -10386,6 +10529,7 @@ var km = moment.defineLocale('km', {
         future: '%sទៀត',
         past: '%sមុន',
         s: 'ប៉ុន្មានវិនាទី',
+        ss: '%d វិនាទី',
         m: 'មួយនាទី',
         mm: '%d នាទី',
         h: 'មួយម៉ោង',
@@ -10475,6 +10619,7 @@ var kn = moment.defineLocale('kn', {
         future : '%s ನಂತರ',
         past : '%s ಹಿಂದೆ',
         s : 'ಕೆಲವು ಕ್ಷಣಗಳು',
+        ss : '%d ಸೆಕೆಂಡುಗಳು',
         m : 'ಒಂದು ನಿಮಿಷ',
         mm : '%d ನಿಮಿಷ',
         h : 'ಒಂದು ಗಂಟೆ',
@@ -10692,6 +10837,7 @@ var ky = moment.defineLocale('ky', {
         future : '%s ичинде',
         past : '%s мурун',
         s : 'бирнече секунд',
+        ss : '%d секунд',
         m : 'бир мүнөт',
         mm : '%d мүнөт',
         h : 'бир саат',
@@ -10838,6 +10984,7 @@ var lb = moment.defineLocale('lb', {
         future : processFutureTime,
         past : processPastTime,
         s : 'e puer Sekonnen',
+        ss : '%d Sekonnen',
         m : processRelativeTime,
         mm : '%d Minutten',
         h : processRelativeTime,
@@ -10915,6 +11062,7 @@ var lo = moment.defineLocale('lo', {
         future : 'ອີກ %s',
         past : '%sຜ່ານມາ',
         s : 'ບໍ່ເທົ່າໃດວິນາທີ',
+        ss : '%d ວິນາທີ' ,
         m : '1 ນາທີ',
         mm : '%d ນາທີ',
         h : '1 ຊົ່ວໂມງ',
@@ -10953,6 +11101,7 @@ return lo;
 
 
 var units = {
+    'ss' : 'sekundė_sekundžių_sekundes',
     'm' : 'minutė_minutės_minutę',
     'mm': 'minutės_minučių_minutes',
     'h' : 'valanda_valandos_valandą',
@@ -11033,6 +11182,7 @@ var lt = moment.defineLocale('lt', {
         future : 'po %s',
         past : 'prieš %s',
         s : translateSeconds,
+        ss : translate,
         m : translateSingular,
         mm : translate,
         h : translateSingular,
@@ -11076,6 +11226,7 @@ return lt;
 
 
 var units = {
+    'ss': 'sekundes_sekundēm_sekunde_sekundes'.split('_'),
     'm': 'minūtes_minūtēm_minūte_minūtes'.split('_'),
     'mm': 'minūtes_minūtēm_minūte_minūtes'.split('_'),
     'h': 'stundas_stundām_stunda_stundas'.split('_'),
@@ -11137,6 +11288,7 @@ var lv = moment.defineLocale('lv', {
         future : 'pēc %s',
         past : 'pirms %s',
         s : relativeSeconds,
+        ss : relativeTimeWithPlural,
         m : relativeTimeWithSingular,
         mm : relativeTimeWithPlural,
         h : relativeTimeWithSingular,
@@ -11178,6 +11330,7 @@ return lv;
 
 var translator = {
     words: { //Different grammatical cases
+        ss: ['sekund', 'sekunda', 'sekundi'],
         m: ['jedan minut', 'jednog minuta'],
         mm: ['minut', 'minuta', 'minuta'],
         h: ['jedan sat', 'jednog sata'],
@@ -11253,6 +11406,7 @@ var me = moment.defineLocale('me', {
         future : 'za %s',
         past   : 'prije %s',
         s      : 'nekoliko sekundi',
+        ss     : translator.translate,
         m      : translator.translate,
         mm     : translator.translate,
         h      : translator.translate,
@@ -11322,6 +11476,7 @@ var mi = moment.defineLocale('mi', {
         future: 'i roto i %s',
         past: '%s i mua',
         s: 'te hēkona ruarua',
+        ss: '%d hēkona',
         m: 'he meneti',
         mm: '%d meneti',
         h: 'te haora',
@@ -11399,6 +11554,7 @@ var mk = moment.defineLocale('mk', {
         future : 'после %s',
         past : 'пред %s',
         s : 'неколку секунди',
+        ss : '%d секунди',
         m : 'минута',
         mm : '%d минути',
         h : 'час',
@@ -11483,6 +11639,7 @@ var ml = moment.defineLocale('ml', {
         future : '%s കഴിഞ്ഞ്',
         past : '%s മുൻപ്',
         s : 'അൽപ നിമിഷങ്ങൾ',
+        ss : '%d സെക്കൻഡ്',
         m : 'ഒരു മിനിറ്റ്',
         mm : '%d മിനിറ്റ്',
         h : 'ഒരു മണിക്കൂർ',
@@ -11574,6 +11731,7 @@ function relativeTimeMr(number, withoutSuffix, string, isFuture)
     if (withoutSuffix) {
         switch (string) {
             case 's': output = 'काही सेकंद'; break;
+            case 'ss': output = '%d सेकंद'; break;
             case 'm': output = 'एक मिनिट'; break;
             case 'mm': output = '%d मिनिटे'; break;
             case 'h': output = 'एक तास'; break;
@@ -11589,6 +11747,7 @@ function relativeTimeMr(number, withoutSuffix, string, isFuture)
     else {
         switch (string) {
             case 's': output = 'काही सेकंदां'; break;
+            case 'ss': output = '%d सेकंदां'; break;
             case 'm': output = 'एका मिनिटा'; break;
             case 'mm': output = '%d मिनिटां'; break;
             case 'h': output = 'एका तासा'; break;
@@ -11631,6 +11790,7 @@ var mr = moment.defineLocale('mr', {
         future: '%sमध्ये',
         past: '%sपूर्वी',
         s: relativeTimeMr,
+        ss: relativeTimeMr,
         m: relativeTimeMr,
         mm: relativeTimeMr,
         h: relativeTimeMr,
@@ -11757,6 +11917,7 @@ var msMy = moment.defineLocale('ms-my', {
         future : 'dalam %s',
         past : '%s yang lepas',
         s : 'beberapa saat',
+        ss : '%d saat',
         m : 'seminit',
         mm : '%d minit',
         h : 'sejam',
@@ -11844,6 +12005,7 @@ var ms = moment.defineLocale('ms', {
         future : 'dalam %s',
         past : '%s yang lepas',
         s : 'beberapa saat',
+        ss : '%d saat',
         m : 'seminit',
         mm : '%d minit',
         h : 'sejam',
@@ -11868,6 +12030,72 @@ return ms;
 
 /***/ }),
 /* 85 */
+/***/ (function(module, exports, __webpack_require__) {
+
+//! moment.js locale configuration
+//! locale : Maltese (Malta) [mt]
+//! author : Alessandro Maruccia : https://github.com/alesma
+
+;(function (global, factory) {
+    true ? factory(__webpack_require__(0)) :
+   typeof define === 'function' && define.amd ? define(['../moment'], factory) :
+   factory(global.moment)
+}(this, (function (moment) { 'use strict';
+
+
+var mt = moment.defineLocale('mt', {
+    months : 'Jannar_Frar_Marzu_April_Mejju_Ġunju_Lulju_Awwissu_Settembru_Ottubru_Novembru_Diċembru'.split('_'),
+    monthsShort : 'Jan_Fra_Mar_Apr_Mej_Ġun_Lul_Aww_Set_Ott_Nov_Diċ'.split('_'),
+    weekdays : 'Il-Ħadd_It-Tnejn_It-Tlieta_L-Erbgħa_Il-Ħamis_Il-Ġimgħa_Is-Sibt'.split('_'),
+    weekdaysShort : 'Ħad_Tne_Tli_Erb_Ħam_Ġim_Sib'.split('_'),
+    weekdaysMin : 'Ħa_Tn_Tl_Er_Ħa_Ġi_Si'.split('_'),
+    longDateFormat : {
+        LT : 'HH:mm',
+        LTS : 'HH:mm:ss',
+        L : 'DD/MM/YYYY',
+        LL : 'D MMMM YYYY',
+        LLL : 'D MMMM YYYY HH:mm',
+        LLLL : 'dddd, D MMMM YYYY HH:mm'
+    },
+    calendar : {
+        sameDay : '[Illum fil-]LT',
+        nextDay : '[Għada fil-]LT',
+        nextWeek : 'dddd [fil-]LT',
+        lastDay : '[Il-bieraħ fil-]LT',
+        lastWeek : 'dddd [li għadda] [fil-]LT',
+        sameElse : 'L'
+    },
+    relativeTime : {
+        future : 'f’ %s',
+        past : '%s ilu',
+        s : 'ftit sekondi',
+        ss : '%d sekondi',
+        m : 'minuta',
+        mm : '%d minuti',
+        h : 'siegħa',
+        hh : '%d siegħat',
+        d : 'ġurnata',
+        dd : '%d ġranet',
+        M : 'xahar',
+        MM : '%d xhur',
+        y : 'sena',
+        yy : '%d sni'
+    },
+    dayOfMonthOrdinalParse : /\d{1,2}º/,
+    ordinal: '%dº',
+    week : {
+        dow : 1, // Monday is the first day of the week.
+        doy : 4  // The week that contains Jan 4th is the first week of the year.
+    }
+});
+
+return mt;
+
+})));
+
+
+/***/ }),
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -11935,6 +12163,7 @@ var my = moment.defineLocale('my', {
         future: 'လာမည့် %s မှာ',
         past: 'လွန်ခဲ့သော %s က',
         s: 'စက္ကန်.အနည်းငယ်',
+        ss : '%d စက္ကန့်',
         m: 'တစ်မိနစ်',
         mm: '%d မိနစ်',
         h: 'တစ်နာရီ',
@@ -11968,7 +12197,7 @@ return my;
 
 
 /***/ }),
-/* 86 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12011,6 +12240,7 @@ var nb = moment.defineLocale('nb', {
         future : 'om %s',
         past : '%s siden',
         s : 'noen sekunder',
+        ss : '%d sekunder',
         m : 'ett minutt',
         mm : '%d minutter',
         h : 'en time',
@@ -12036,7 +12266,7 @@ return nb;
 
 
 /***/ }),
-/* 87 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12141,6 +12371,7 @@ var ne = moment.defineLocale('ne', {
         future : '%sमा',
         past : '%s अगाडि',
         s : 'केही क्षण',
+        ss : '%d सेकेण्ड',
         m : 'एक मिनेट',
         mm : '%d मिनेट',
         h : 'एक घण्टा',
@@ -12164,7 +12395,7 @@ return ne;
 
 
 /***/ }),
-/* 88 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12230,6 +12461,7 @@ var nlBe = moment.defineLocale('nl-be', {
         future : 'over %s',
         past : '%s geleden',
         s : 'een paar seconden',
+        ss : '%d seconden',
         m : 'één minuut',
         mm : '%d minuten',
         h : 'één uur',
@@ -12257,7 +12489,7 @@ return nlBe;
 
 
 /***/ }),
-/* 89 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12323,6 +12555,7 @@ var nl = moment.defineLocale('nl', {
         future : 'over %s',
         past : '%s geleden',
         s : 'een paar seconden',
+        ss : '%d seconden',
         m : 'één minuut',
         mm : '%d minuten',
         h : 'één uur',
@@ -12350,7 +12583,7 @@ return nl;
 
 
 /***/ }),
-/* 90 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12390,6 +12623,7 @@ var nn = moment.defineLocale('nn', {
         future : 'om %s',
         past : '%s sidan',
         s : 'nokre sekund',
+        ss : '%d sekund',
         m : 'eit minutt',
         mm : '%d minutt',
         h : 'ein time',
@@ -12415,7 +12649,7 @@ return nn;
 
 
 /***/ }),
-/* 91 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12481,6 +12715,7 @@ var paIn = moment.defineLocale('pa-in', {
         future : '%s ਵਿੱਚ',
         past : '%s ਪਿਛਲੇ',
         s : 'ਕੁਝ ਸਕਿੰਟ',
+        ss : '%d ਸਕਿੰਟ',
         m : 'ਇਕ ਮਿੰਟ',
         mm : '%d ਮਿੰਟ',
         h : 'ਇੱਕ ਘੰਟਾ',
@@ -12544,7 +12779,7 @@ return paIn;
 
 
 /***/ }),
-/* 92 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12566,6 +12801,8 @@ function plural(n) {
 function translate(number, withoutSuffix, key) {
     var result = number + ' ';
     switch (key) {
+        case 'ss':
+            return result + (plural(number) ? 'sekundy' : 'sekund');
         case 'm':
             return withoutSuffix ? 'minuta' : 'minutę';
         case 'mm':
@@ -12648,6 +12885,7 @@ var pl = moment.defineLocale('pl', {
         future : 'za %s',
         past : '%s temu',
         s : 'kilka sekund',
+        ss : translate,
         m : translate,
         mm : translate,
         h : translate,
@@ -12673,7 +12911,7 @@ return pl;
 
 
 /***/ }),
-/* 93 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12740,7 +12978,7 @@ return ptBr;
 
 
 /***/ }),
-/* 94 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12785,6 +13023,7 @@ var pt = moment.defineLocale('pt', {
         future : 'em %s',
         past : 'há %s',
         s : 'segundos',
+        ss : '%d segundos',
         m : 'um minuto',
         mm : '%d minutos',
         h : 'uma hora',
@@ -12810,7 +13049,7 @@ return pt;
 
 
 /***/ }),
-/* 95 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12827,6 +13066,7 @@ return pt;
 
 function relativeTimeWithPlural(number, withoutSuffix, key) {
     var format = {
+            'ss': 'secunde',
             'mm': 'minute',
             'hh': 'ore',
             'dd': 'zile',
@@ -12867,6 +13107,7 @@ var ro = moment.defineLocale('ro', {
         future : 'peste %s',
         past : '%s în urmă',
         s : 'câteva secunde',
+        ss : relativeTimeWithPlural,
         m : 'un minut',
         mm : relativeTimeWithPlural,
         h : 'o oră',
@@ -12890,7 +13131,7 @@ return ro;
 
 
 /***/ }),
-/* 96 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -12912,6 +13153,7 @@ function plural(word, num) {
 }
 function relativeTimeWithPlural(number, withoutSuffix, key) {
     var format = {
+        'ss': withoutSuffix ? 'секунда_секунды_секунд' : 'секунду_секунды_секунд',
         'mm': withoutSuffix ? 'минута_минуты_минут' : 'минуту_минуты_минут',
         'hh': 'час_часа_часов',
         'dd': 'день_дня_дней',
@@ -12963,12 +13205,12 @@ var ru = moment.defineLocale('ru', {
     // Выражение, которое соотвествует только сокращённым формам
     monthsShortStrictRegex: /^(янв\.|февр?\.|мар[т.]|апр\.|ма[яй]|июн[ья.]|июл[ья.]|авг\.|сент?\.|окт\.|нояб?\.|дек\.)/i,
     longDateFormat : {
-        LT : 'HH:mm',
-        LTS : 'HH:mm:ss',
+        LT : 'H:mm',
+        LTS : 'H:mm:ss',
         L : 'DD.MM.YYYY',
         LL : 'D MMMM YYYY г.',
-        LLL : 'D MMMM YYYY г., HH:mm',
-        LLLL : 'dddd, D MMMM YYYY г., HH:mm'
+        LLL : 'D MMMM YYYY г., H:mm',
+        LLLL : 'dddd, D MMMM YYYY г., H:mm'
     },
     calendar : {
         sameDay: '[Сегодня в] LT',
@@ -13024,6 +13266,7 @@ var ru = moment.defineLocale('ru', {
         future : 'через %s',
         past : '%s назад',
         s : 'несколько секунд',
+        ss : relativeTimeWithPlural,
         m : relativeTimeWithPlural,
         mm : relativeTimeWithPlural,
         h : 'час',
@@ -13078,7 +13321,7 @@ return ru;
 
 
 /***/ }),
-/* 97 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -13152,6 +13395,7 @@ var sd = moment.defineLocale('sd', {
         future : '%s پوء',
         past : '%s اڳ',
         s : 'چند سيڪنڊ',
+        ss : '%d سيڪنڊ',
         m : 'هڪ منٽ',
         mm : '%d منٽ',
         h : 'هڪ ڪلاڪ',
@@ -13181,7 +13425,7 @@ return sd;
 
 
 /***/ }),
-/* 98 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -13222,6 +13466,7 @@ var se = moment.defineLocale('se', {
         future : '%s geažes',
         past : 'maŋit %s',
         s : 'moadde sekunddat',
+        ss: '%d sekunddat',
         m : 'okta minuhta',
         mm : '%d minuhtat',
         h : 'okta diimmu',
@@ -13247,7 +13492,7 @@ return se;
 
 
 /***/ }),
-/* 99 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -13289,6 +13534,7 @@ var si = moment.defineLocale('si', {
         future : '%sකින්',
         past : '%sකට පෙර',
         s : 'තත්පර කිහිපය',
+        ss : 'තත්පර %d',
         m : 'මිනිත්තුව',
         mm : 'මිනිත්තු %d',
         h : 'පැය',
@@ -13323,7 +13569,7 @@ return si;
 
 
 /***/ }),
-/* 100 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -13348,6 +13594,13 @@ function translate(number, withoutSuffix, key, isFuture) {
     switch (key) {
         case 's':  // a few seconds / in a few seconds / a few seconds ago
             return (withoutSuffix || isFuture) ? 'pár sekúnd' : 'pár sekundami';
+        case 'ss': // 9 seconds / in 9 seconds / 9 seconds ago
+            if (withoutSuffix || isFuture) {
+                return result + (plural(number) ? 'sekundy' : 'sekúnd');
+            } else {
+                return result + 'sekundami';
+            }
+            break;
         case 'm':  // a minute / in a minute / a minute ago
             return withoutSuffix ? 'minúta' : (isFuture ? 'minútu' : 'minútou');
         case 'mm': // 9 minutes / in 9 minutes / 9 minutes ago
@@ -13453,6 +13706,7 @@ var sk = moment.defineLocale('sk', {
         future : 'za %s',
         past : 'pred %s',
         s : translate,
+        ss : translate,
         m : translate,
         mm : translate,
         h : translate,
@@ -13478,7 +13732,7 @@ return sk;
 
 
 /***/ }),
-/* 101 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -13497,6 +13751,17 @@ function processRelativeTime(number, withoutSuffix, key, isFuture) {
     switch (key) {
         case 's':
             return withoutSuffix || isFuture ? 'nekaj sekund' : 'nekaj sekundami';
+        case 'ss':
+            if (number === 1) {
+                result += withoutSuffix ? 'sekundo' : 'sekundi';
+            } else if (number === 2) {
+                result += withoutSuffix || isFuture ? 'sekundi' : 'sekundah';
+            } else if (number < 5) {
+                result += withoutSuffix || isFuture ? 'sekunde' : 'sekundah';
+            } else {
+                result += withoutSuffix || isFuture ? 'sekund' : 'sekund';
+            }
+            return result;
         case 'm':
             return withoutSuffix ? 'ena minuta' : 'eno minuto';
         case 'mm':
@@ -13620,6 +13885,7 @@ var sl = moment.defineLocale('sl', {
         future : 'čez %s',
         past   : 'pred %s',
         s      : processRelativeTime,
+        ss     : processRelativeTime,
         m      : processRelativeTime,
         mm     : processRelativeTime,
         h      : processRelativeTime,
@@ -13645,7 +13911,7 @@ return sl;
 
 
 /***/ }),
-/* 102 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -13695,6 +13961,7 @@ var sq = moment.defineLocale('sq', {
         future : 'në %s',
         past : '%s më parë',
         s : 'disa sekonda',
+        ss : '%d sekonda',
         m : 'një minutë',
         mm : '%d minuta',
         h : 'një orë',
@@ -13720,7 +13987,7 @@ return sq;
 
 
 /***/ }),
-/* 103 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -13736,6 +14003,7 @@ return sq;
 
 var translator = {
     words: { //Different grammatical cases
+        ss: ['секунда', 'секунде', 'секунди'],
         m: ['један минут', 'једне минуте'],
         mm: ['минут', 'минуте', 'минута'],
         h: ['један сат', 'једног сата'],
@@ -13810,6 +14078,7 @@ var srCyrl = moment.defineLocale('sr-cyrl', {
         future : 'за %s',
         past   : 'пре %s',
         s      : 'неколико секунди',
+        ss     : translator.translate,
         m      : translator.translate,
         mm     : translator.translate,
         h      : translator.translate,
@@ -13835,7 +14104,7 @@ return srCyrl;
 
 
 /***/ }),
-/* 104 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -13851,6 +14120,7 @@ return srCyrl;
 
 var translator = {
     words: { //Different grammatical cases
+        ss: ['sekunda', 'sekunde', 'sekundi'],
         m: ['jedan minut', 'jedne minute'],
         mm: ['minut', 'minute', 'minuta'],
         h: ['jedan sat', 'jednog sata'],
@@ -13925,6 +14195,7 @@ var sr = moment.defineLocale('sr', {
         future : 'za %s',
         past   : 'pre %s',
         s      : 'nekoliko sekundi',
+        ss     : translator.translate,
         m      : translator.translate,
         mm     : translator.translate,
         h      : translator.translate,
@@ -13950,7 +14221,7 @@ return sr;
 
 
 /***/ }),
-/* 105 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -13992,6 +14263,7 @@ var ss = moment.defineLocale('ss', {
         future : 'nga %s',
         past : 'wenteka nga %s',
         s : 'emizuzwana lomcane',
+        ss : '%d mzuzwana',
         m : 'umzuzu',
         mm : '%d emizuzu',
         h : 'lihora',
@@ -14044,7 +14316,7 @@ return ss;
 
 
 /***/ }),
-/* 106 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14086,6 +14358,7 @@ var sv = moment.defineLocale('sv', {
         future : 'om %s',
         past : 'för %s sedan',
         s : 'några sekunder',
+        ss : '%d sekunder',
         m : 'en minut',
         mm : '%d minuter',
         h : 'en timme',
@@ -14118,7 +14391,7 @@ return sv;
 
 
 /***/ }),
-/* 107 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14159,6 +14432,7 @@ var sw = moment.defineLocale('sw', {
         future : '%s baadaye',
         past : 'tokea %s',
         s : 'hivi punde',
+        ss : 'sekunde %d',
         m : 'dakika moja',
         mm : 'dakika %d',
         h : 'saa limoja',
@@ -14182,7 +14456,7 @@ return sw;
 
 
 /***/ }),
-/* 108 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14247,6 +14521,7 @@ var ta = moment.defineLocale('ta', {
         future : '%s இல்',
         past : '%s முன்',
         s : 'ஒரு சில விநாடிகள்',
+        ss : '%d விநாடிகள்',
         m : 'ஒரு நிமிடம்',
         mm : '%d நிமிடங்கள்',
         h : 'ஒரு மணி நேரம்',
@@ -14317,7 +14592,7 @@ return ta;
 
 
 /***/ }),
-/* 109 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14358,6 +14633,7 @@ var te = moment.defineLocale('te', {
         future : '%s లో',
         past : '%s క్రితం',
         s : 'కొన్ని క్షణాలు',
+        ss : '%d సెకన్లు',
         m : 'ఒక నిమిషం',
         mm : '%d నిమిషాలు',
         h : 'ఒక గంట',
@@ -14411,7 +14687,7 @@ return te;
 
 
 /***/ }),
-/* 110 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14452,6 +14728,7 @@ var tet = moment.defineLocale('tet', {
         future : 'iha %s',
         past : '%s liuba',
         s : 'minutu balun',
+        ss : 'minutu %d',
         m : 'minutu ida',
         mm : 'minutus %d',
         h : 'horas ida',
@@ -14484,7 +14761,7 @@ return tet;
 
 
 /***/ }),
-/* 111 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14537,6 +14814,7 @@ var th = moment.defineLocale('th', {
         future : 'อีก %s',
         past : '%sที่แล้ว',
         s : 'ไม่กี่วินาที',
+        ss : '%d วินาที',
         m : '1 นาที',
         mm : '%d นาที',
         h : '1 ชั่วโมง',
@@ -14556,7 +14834,7 @@ return th;
 
 
 /***/ }),
-/* 112 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14596,6 +14874,7 @@ var tlPh = moment.defineLocale('tl-ph', {
         future : 'sa loob ng %s',
         past : '%s ang nakalipas',
         s : 'ilang segundo',
+        ss : '%d segundo',
         m : 'isang minuto',
         mm : '%d minuto',
         h : 'isang oras',
@@ -14623,7 +14902,7 @@ return tlPh;
 
 
 /***/ }),
-/* 113 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14666,6 +14945,8 @@ function translatePast(output) {
 function translate(number, withoutSuffix, string, isFuture) {
     var numberNoun = numberAsNoun(number);
     switch (string) {
+        case 'ss':
+            return numberNoun + ' lup';
         case 'mm':
             return numberNoun + ' tup';
         case 'hh':
@@ -14723,6 +15004,7 @@ var tlh = moment.defineLocale('tlh', {
         future : translateFuture,
         past : translatePast,
         s : 'puS lup',
+        ss : translate,
         m : 'wa’ tup',
         mm : translate,
         h : 'wa’ rep',
@@ -14748,7 +15030,7 @@ return tlh;
 
 
 /***/ }),
-/* 114 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14810,6 +15092,7 @@ var tr = moment.defineLocale('tr', {
         future : '%s sonra',
         past : '%s önce',
         s : 'birkaç saniye',
+        ss : '%d saniye',
         m : 'bir dakika',
         mm : '%d dakika',
         h : 'bir saat',
@@ -14843,7 +15126,7 @@ return tr;
 
 
 /***/ }),
-/* 115 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14897,6 +15180,7 @@ var tzl = moment.defineLocale('tzl', {
         future : 'osprei %s',
         past : 'ja%s',
         s : processRelativeTime,
+        ss : processRelativeTime,
         m : processRelativeTime,
         mm : processRelativeTime,
         h : processRelativeTime,
@@ -14919,6 +15203,7 @@ var tzl = moment.defineLocale('tzl', {
 function processRelativeTime(number, withoutSuffix, key, isFuture) {
     var format = {
         's': ['viensas secunds', '\'iensas secunds'],
+        'ss': [number + ' secunds', '' + number + ' secunds'],
         'm': ['\'n míut', '\'iens míut'],
         'mm': [number + ' míuts', '' + number + ' míuts'],
         'h': ['\'n þora', '\'iensa þora'],
@@ -14939,7 +15224,7 @@ return tzl;
 
 
 /***/ }),
-/* 116 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -14979,6 +15264,7 @@ var tzmLatn = moment.defineLocale('tzm-latn', {
         future : 'dadkh s yan %s',
         past : 'yan %s',
         s : 'imik',
+        ss : '%d imik',
         m : 'minuḍ',
         mm : '%d minuḍ',
         h : 'saɛa',
@@ -15002,7 +15288,7 @@ return tzmLatn;
 
 
 /***/ }),
-/* 117 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15042,6 +15328,7 @@ var tzm = moment.defineLocale('tzm', {
         future : 'ⴷⴰⴷⵅ ⵙ ⵢⴰⵏ %s',
         past : 'ⵢⴰⵏ %s',
         s : 'ⵉⵎⵉⴽ',
+        ss : '%d ⵉⵎⵉⴽ',
         m : 'ⵎⵉⵏⵓⴺ',
         mm : '%d ⵎⵉⵏⵓⴺ',
         h : 'ⵙⴰⵄⴰ',
@@ -15065,7 +15352,7 @@ return tzm;
 
 
 /***/ }),
-/* 118 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15086,6 +15373,7 @@ function plural(word, num) {
 }
 function relativeTimeWithPlural(number, withoutSuffix, key) {
     var format = {
+        'ss': withoutSuffix ? 'секунда_секунди_секунд' : 'секунду_секунди_секунд',
         'mm': withoutSuffix ? 'хвилина_хвилини_хвилин' : 'хвилину_хвилини_хвилин',
         'hh': withoutSuffix ? 'година_години_годин' : 'годину_години_годин',
         'dd': 'день_дні_днів',
@@ -15167,6 +15455,7 @@ var uk = moment.defineLocale('uk', {
         future : 'за %s',
         past : '%s тому',
         s : 'декілька секунд',
+        ss : relativeTimeWithPlural,
         m : relativeTimeWithPlural,
         mm : relativeTimeWithPlural,
         h : 'годину',
@@ -15221,7 +15510,7 @@ return uk;
 
 
 /***/ }),
-/* 119 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15296,6 +15585,7 @@ var ur = moment.defineLocale('ur', {
         future : '%s بعد',
         past : '%s قبل',
         s : 'چند سیکنڈ',
+        ss : '%d سیکنڈ',
         m : 'ایک منٹ',
         mm : '%d منٹ',
         h : 'ایک گھنٹہ',
@@ -15325,7 +15615,7 @@ return ur;
 
 
 /***/ }),
-/* 120 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15365,6 +15655,7 @@ var uzLatn = moment.defineLocale('uz-latn', {
         future : 'Yaqin %s ichida',
         past : 'Bir necha %s oldin',
         s : 'soniya',
+        ss : '%d soniya',
         m : 'bir daqiqa',
         mm : '%d daqiqa',
         h : 'bir soat',
@@ -15388,7 +15679,7 @@ return uzLatn;
 
 
 /***/ }),
-/* 121 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15428,6 +15719,7 @@ var uz = moment.defineLocale('uz', {
         future : 'Якин %s ичида',
         past : 'Бир неча %s олдин',
         s : 'фурсат',
+        ss : '%d фурсат',
         m : 'бир дакика',
         mm : '%d дакика',
         h : 'бир соат',
@@ -15451,7 +15743,7 @@ return uz;
 
 
 /***/ }),
-/* 122 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15508,6 +15800,7 @@ var vi = moment.defineLocale('vi', {
         future : '%s tới',
         past : '%s trước',
         s : 'vài giây',
+        ss : '%d giây' ,
         m : 'một phút',
         mm : '%d phút',
         h : 'một giờ',
@@ -15535,7 +15828,7 @@ return vi;
 
 
 /***/ }),
-/* 123 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15576,6 +15869,7 @@ var xPseudo = moment.defineLocale('x-pseudo', {
         future : 'í~ñ %s',
         past : '%s á~gó',
         s : 'á ~féw ~sécó~ñds',
+        ss : '%d s~écóñ~ds',
         m : 'á ~míñ~úté',
         mm : '%d m~íñú~tés',
         h : 'á~ñ hó~úr',
@@ -15608,7 +15902,7 @@ return xPseudo;
 
 
 /***/ }),
-/* 124 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15648,6 +15942,7 @@ var yo = moment.defineLocale('yo', {
         future : 'ní %s',
         past : '%s kọjá',
         s : 'ìsẹjú aayá die',
+        ss :'aayá %d',
         m : 'ìsẹjú kan',
         mm : 'ìsẹjú %d',
         h : 'wákati kan',
@@ -15673,7 +15968,7 @@ return yo;
 
 
 /***/ }),
-/* 125 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15697,14 +15992,14 @@ var zhCn = moment.defineLocale('zh-cn', {
     longDateFormat : {
         LT : 'HH:mm',
         LTS : 'HH:mm:ss',
-        L : 'YYYY年MMMD日',
-        LL : 'YYYY年MMMD日',
-        LLL : 'YYYY年MMMD日Ah点mm分',
-        LLLL : 'YYYY年MMMD日ddddAh点mm分',
-        l : 'YYYY年MMMD日',
-        ll : 'YYYY年MMMD日',
-        lll : 'YYYY年MMMD日 HH:mm',
-        llll : 'YYYY年MMMD日dddd HH:mm'
+        L : 'YYYY/MM/DD',
+        LL : 'YYYY年M月D日',
+        LLL : 'YYYY年M月D日Ah点mm分',
+        LLLL : 'YYYY年M月D日ddddAh点mm分',
+        l : 'YYYY/M/D',
+        ll : 'YYYY年M月D日',
+        lll : 'YYYY年M月D日 HH:mm',
+        llll : 'YYYY年M月D日dddd HH:mm'
     },
     meridiemParse: /凌晨|早上|上午|中午|下午|晚上/,
     meridiemHour: function (hour, meridiem) {
@@ -15765,6 +16060,7 @@ var zhCn = moment.defineLocale('zh-cn', {
         future : '%s内',
         past : '%s前',
         s : '几秒',
+        ss : '%d 秒',
         m : '1 分钟',
         mm : '%d 分钟',
         h : '1 小时',
@@ -15789,7 +16085,7 @@ return zhCn;
 
 
 /***/ }),
-/* 126 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15814,14 +16110,14 @@ var zhHk = moment.defineLocale('zh-hk', {
     longDateFormat : {
         LT : 'HH:mm',
         LTS : 'HH:mm:ss',
-        L : 'YYYY年MMMD日',
-        LL : 'YYYY年MMMD日',
-        LLL : 'YYYY年MMMD日 HH:mm',
-        LLLL : 'YYYY年MMMD日dddd HH:mm',
-        l : 'YYYY年MMMD日',
-        ll : 'YYYY年MMMD日',
-        lll : 'YYYY年MMMD日 HH:mm',
-        llll : 'YYYY年MMMD日dddd HH:mm'
+        L : 'YYYY/MM/DD',
+        LL : 'YYYY年M月D日',
+        LLL : 'YYYY年M月D日 HH:mm',
+        LLLL : 'YYYY年M月D日dddd HH:mm',
+        l : 'YYYY/M/D',
+        ll : 'YYYY年M月D日',
+        lll : 'YYYY年M月D日 HH:mm',
+        llll : 'YYYY年M月D日dddd HH:mm'
     },
     meridiemParse: /凌晨|早上|上午|中午|下午|晚上/,
     meridiemHour : function (hour, meridiem) {
@@ -15880,6 +16176,7 @@ var zhHk = moment.defineLocale('zh-hk', {
         future : '%s內',
         past : '%s前',
         s : '幾秒',
+        ss : '%d 秒',
         m : '1 分鐘',
         mm : '%d 分鐘',
         h : '1 小時',
@@ -15899,7 +16196,7 @@ return zhHk;
 
 
 /***/ }),
-/* 127 */
+/* 128 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //! moment.js locale configuration
@@ -15923,14 +16220,14 @@ var zhTw = moment.defineLocale('zh-tw', {
     longDateFormat : {
         LT : 'HH:mm',
         LTS : 'HH:mm:ss',
-        L : 'YYYY年MMMD日',
-        LL : 'YYYY年MMMD日',
-        LLL : 'YYYY年MMMD日 HH:mm',
-        LLLL : 'YYYY年MMMD日dddd HH:mm',
-        l : 'YYYY年MMMD日',
-        ll : 'YYYY年MMMD日',
-        lll : 'YYYY年MMMD日 HH:mm',
-        llll : 'YYYY年MMMD日dddd HH:mm'
+        L : 'YYYY/MM/DD',
+        LL : 'YYYY年M月D日',
+        LLL : 'YYYY年M月D日 HH:mm',
+        LLLL : 'YYYY年M月D日dddd HH:mm',
+        l : 'YYYY/M/D',
+        ll : 'YYYY年M月D日',
+        lll : 'YYYY年M月D日 HH:mm',
+        llll : 'YYYY年M月D日dddd HH:mm'
     },
     meridiemParse: /凌晨|早上|上午|中午|下午|晚上/,
     meridiemHour : function (hour, meridiem) {
@@ -15989,6 +16286,7 @@ var zhTw = moment.defineLocale('zh-tw', {
         future : '%s內',
         past : '%s前',
         s : '幾秒',
+        ss : '%d 秒',
         m : '1 分鐘',
         mm : '%d 分鐘',
         h : '1 小時',
@@ -16008,36 +16306,10 @@ return zhTw;
 
 
 /***/ }),
-/* 128 */
-/***/ (function(module, exports) {
-
-module.exports = function(module) {
-	if(!module.webpackPolyfill) {
-		module.deprecate = function() {};
-		module.paths = [];
-		// module.parent = undefined by default
-		if(!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
-
-
-/***/ }),
 /* 129 */,
-/* 130 */
+/* 130 */,
+/* 131 */,
+/* 132 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16051,7 +16323,7 @@ var moment = __webpack_require__(0);
 //
 // thirdly, register components to Vue
 //
-Vue.component('notifications', __webpack_require__(159));
+Vue.component('notifications', __webpack_require__(162));
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -16070,54 +16342,49 @@ var app = new Vue({
     created: function created() {
         var _this = this;
 
-        this.getNotifications();
-        // console.log("niagi dri");
+        this.getNotifications(this.role);
         if (this.role == 'User') {
             Echo.private('users.' + this.userId).notification(function (notification) {
-                // console.log(notification);
+                _this.count++;
+                _this.notifications.unshift(notification);
+            });
+        } else if (this.role == 'Admin') {
+            Echo.private('admin.' + this.userId).notification(function (notification) {
                 _this.count++;
                 _this.notifications.unshift(notification);
             });
         } else {
-            Echo.private('admin.' + this.userId).notification(function (notification) {
+            Echo.private('god.' + this.userId).notification(function (notification) {
                 _this.count++;
                 _this.notifications.unshift(notification);
-                // console.log(notification.class);
-                // console.log(notification);
-                // console.log(_this.notifications);
             });
         }
     },
 
     methods: {
-        getNotifications: function getNotifications() {
+        getNotifications: function getNotifications(role) {
             var _this2 = this;
 
-            // console.log(msg.user_id);
-            axios.get('/bloodplusrepo/public/notifications').then(function (response) {
-                _this2.count = response.data.count;
-                _this2.notifications = response.data.notif;
-                // console.log(response.data.notif);
-                // console.log(response);
-            });
+            if (role == 'God') {
+                axios.get('/bloodplusrepo/public/notifications?role=super').then(function (response) {
+                    _this2.count = response.data.count;
+                    _this2.notifications = response.data.notif;
+                });
+            } else {
+                axios.get('/bloodplusrepo/public/notifications').then(function (response) {
+                    _this2.count = response.data.count;
+                    _this2.notifications = response.data.notif;
+                });
+            }
         },
         unreadNotifications: function unreadNotifications() {
             axios.get('/bloodplusrepo/public/notifications/unread').then(function (response) {});
             this.count = 0;
         }
-    },
-    filters: {
-        capitalize: function capitalize(value) {
-            if (!value) return '';
-            value = value.toString();
-            return value.charAt(0).toUpperCase() + value.slice(1);
-        }
     }
 });
 
 /***/ }),
-/* 131 */,
-/* 132 */,
 /* 133 */,
 /* 134 */,
 /* 135 */,
@@ -16135,7 +16402,9 @@ var app = new Vue({
 /* 147 */,
 /* 148 */,
 /* 149 */,
-/* 150 */
+/* 150 */,
+/* 151 */,
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16172,33 +16441,27 @@ Object.defineProperty(exports, "__esModule", {
 //
 //
 //
-//
 
 exports.default = {
   props: ['notifications', 'count'],
-  mounted: function mounted() {
-    // console.log(this.count);
-    // console.log(this.notifications);
-    // console.log("Component created!");
-  },
+  mounted: function mounted() {},
   methods: {
     getImageUrl: function getImageUrl(object) {
       return object['picture'];
     },
     counter: function counter() {
-      // console.log('niagi dri');
       this.$emit('readnotif');
     }
   }
 };
 
 /***/ }),
-/* 151 */,
-/* 152 */,
 /* 153 */,
 /* 154 */,
 /* 155 */,
-/* 156 */
+/* 156 */,
+/* 157 */,
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
@@ -16352,92 +16615,94 @@ var map = {
 	"./ms-my": 83,
 	"./ms-my.js": 83,
 	"./ms.js": 84,
-	"./my": 85,
-	"./my.js": 85,
-	"./nb": 86,
-	"./nb.js": 86,
-	"./ne": 87,
-	"./ne.js": 87,
-	"./nl": 89,
-	"./nl-be": 88,
-	"./nl-be.js": 88,
-	"./nl.js": 89,
-	"./nn": 90,
-	"./nn.js": 90,
-	"./pa-in": 91,
-	"./pa-in.js": 91,
-	"./pl": 92,
-	"./pl.js": 92,
-	"./pt": 94,
-	"./pt-br": 93,
-	"./pt-br.js": 93,
-	"./pt.js": 94,
-	"./ro": 95,
-	"./ro.js": 95,
-	"./ru": 96,
-	"./ru.js": 96,
-	"./sd": 97,
-	"./sd.js": 97,
-	"./se": 98,
-	"./se.js": 98,
-	"./si": 99,
-	"./si.js": 99,
-	"./sk": 100,
-	"./sk.js": 100,
-	"./sl": 101,
-	"./sl.js": 101,
-	"./sq": 102,
-	"./sq.js": 102,
-	"./sr": 104,
-	"./sr-cyrl": 103,
-	"./sr-cyrl.js": 103,
-	"./sr.js": 104,
-	"./ss": 105,
-	"./ss.js": 105,
-	"./sv": 106,
-	"./sv.js": 106,
-	"./sw": 107,
-	"./sw.js": 107,
-	"./ta": 108,
-	"./ta.js": 108,
-	"./te": 109,
-	"./te.js": 109,
-	"./tet": 110,
-	"./tet.js": 110,
-	"./th": 111,
-	"./th.js": 111,
-	"./tl-ph": 112,
-	"./tl-ph.js": 112,
-	"./tlh": 113,
-	"./tlh.js": 113,
-	"./tr": 114,
-	"./tr.js": 114,
-	"./tzl": 115,
-	"./tzl.js": 115,
-	"./tzm": 117,
-	"./tzm-latn": 116,
-	"./tzm-latn.js": 116,
-	"./tzm.js": 117,
-	"./uk": 118,
-	"./uk.js": 118,
-	"./ur": 119,
-	"./ur.js": 119,
-	"./uz": 121,
-	"./uz-latn": 120,
-	"./uz-latn.js": 120,
-	"./uz.js": 121,
-	"./vi": 122,
-	"./vi.js": 122,
-	"./x-pseudo": 123,
-	"./x-pseudo.js": 123,
-	"./yo": 124,
-	"./yo.js": 124,
-	"./zh-cn": 125,
-	"./zh-cn.js": 125,
-	"./zh-hk": 126,
-	"./zh-hk.js": 126,
-	"./zh-tw": 127,
-	"./zh-tw.js": 127
+	"./mt": 85,
+	"./mt.js": 85,
+	"./my": 86,
+	"./my.js": 86,
+	"./nb": 87,
+	"./nb.js": 87,
+	"./ne": 88,
+	"./ne.js": 88,
+	"./nl": 90,
+	"./nl-be": 89,
+	"./nl-be.js": 89,
+	"./nl.js": 90,
+	"./nn": 91,
+	"./nn.js": 91,
+	"./pa-in": 92,
+	"./pa-in.js": 92,
+	"./pl": 93,
+	"./pl.js": 93,
+	"./pt": 95,
+	"./pt-br": 94,
+	"./pt-br.js": 94,
+	"./pt.js": 95,
+	"./ro": 96,
+	"./ro.js": 96,
+	"./ru": 97,
+	"./ru.js": 97,
+	"./sd": 98,
+	"./sd.js": 98,
+	"./se": 99,
+	"./se.js": 99,
+	"./si": 100,
+	"./si.js": 100,
+	"./sk": 101,
+	"./sk.js": 101,
+	"./sl": 102,
+	"./sl.js": 102,
+	"./sq": 103,
+	"./sq.js": 103,
+	"./sr": 105,
+	"./sr-cyrl": 104,
+	"./sr-cyrl.js": 104,
+	"./sr.js": 105,
+	"./ss": 106,
+	"./ss.js": 106,
+	"./sv": 107,
+	"./sv.js": 107,
+	"./sw": 108,
+	"./sw.js": 108,
+	"./ta": 109,
+	"./ta.js": 109,
+	"./te": 110,
+	"./te.js": 110,
+	"./tet": 111,
+	"./tet.js": 111,
+	"./th": 112,
+	"./th.js": 112,
+	"./tl-ph": 113,
+	"./tl-ph.js": 113,
+	"./tlh": 114,
+	"./tlh.js": 114,
+	"./tr": 115,
+	"./tr.js": 115,
+	"./tzl": 116,
+	"./tzl.js": 116,
+	"./tzm": 118,
+	"./tzm-latn": 117,
+	"./tzm-latn.js": 117,
+	"./tzm.js": 118,
+	"./uk": 119,
+	"./uk.js": 119,
+	"./ur": 120,
+	"./ur.js": 120,
+	"./uz": 122,
+	"./uz-latn": 121,
+	"./uz-latn.js": 121,
+	"./uz.js": 122,
+	"./vi": 123,
+	"./vi.js": 123,
+	"./x-pseudo": 124,
+	"./x-pseudo.js": 124,
+	"./yo": 125,
+	"./yo.js": 125,
+	"./zh-cn": 126,
+	"./zh-cn.js": 126,
+	"./zh-hk": 127,
+	"./zh-hk.js": 127,
+	"./zh-tw": 128,
+	"./zh-tw.js": 128
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -16453,25 +16718,26 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 156;
+webpackContext.id = 158;
 
 /***/ }),
-/* 157 */,
-/* 158 */,
-/* 159 */
+/* 159 */,
+/* 160 */,
+/* 161 */,
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var Component = __webpack_require__(160)(
+var Component = __webpack_require__(163)(
   /* script */
-  __webpack_require__(150),
+  __webpack_require__(152),
   /* template */
-  __webpack_require__(161),
+  __webpack_require__(164),
   /* scopeId */
   null,
   /* cssModules */
   null
 )
-Component.options.__file = "E:\\kyle\\www\\bloodplususers\\resources\\assets\\js\\components\\Notifications.vue"
+Component.options.__file = "E:\\kyle\\www\\bloodplusrepo\\resources\\assets\\js\\components\\Notifications.vue"
 if (Component.esModule && Object.keys(Component.esModule).some(function (key) {return key !== "default" && key !== "__esModule"})) {console.error("named exports are not supported in *.vue files.")}
 if (Component.options.functional) {console.error("[vue-loader] Notifications.vue: functional components are not supported with templates, they should use render functions.")}
 
@@ -16482,9 +16748,9 @@ if (false) {(function () {
   if (!hotAPI.compatible) return
   module.hot.accept()
   if (!module.hot.data) {
-    hotAPI.createRecord("data-v-6ec59650", Component.options)
+    hotAPI.createRecord("data-v-58ef36ac", Component.options)
   } else {
-    hotAPI.reload("data-v-6ec59650", Component.options)
+    hotAPI.reload("data-v-58ef36ac", Component.options)
   }
 })()}
 
@@ -16492,7 +16758,7 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 160 */
+/* 163 */
 /***/ (function(module, exports) {
 
 // this module is a runtime utility for cleaner component module output and will
@@ -16549,7 +16815,7 @@ module.exports = function normalizeComponent (
 
 
 /***/ }),
-/* 161 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
@@ -16568,14 +16834,14 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     staticClass: "glyphicon glyphicon-bell"
   }), _vm._v(" "), (_vm.count != 0) ? _c('span', {
     staticClass: "label label-success"
-  }, [_vm._v(_vm._s(_vm.count) + "\n\n        ")]) : _vm._e()]), _vm._v(" "), _c('ul', {
+  }, [_vm._v(_vm._s(_vm.count) + "\n        ")]) : _vm._e()]), _vm._v(" "), _c('ul', {
     staticClass: "dropdown-menu first-dropdown"
   }, _vm._l((_vm.notifications), function(notification) {
     return _c('li', {
       staticClass: "notification-list"
     }, [_c('a', {
       attrs: {
-        "href": '/bloodplusrepo/public/notifications/' + notification.data.class['id'] + '?class=' + notification.data.class['class']
+        "href": '/bloodplususers/public/notifications/' + notification.data.class['id'] + '?class=' + notification.data.class['class']
       }
     }, [_c('div', {
       staticClass: "media"
@@ -16600,16 +16866,18 @@ module.exports.render._withStripped = true
 if (false) {
   module.hot.accept()
   if (module.hot.data) {
-     require("vue-hot-reload-api").rerender("data-v-6ec59650", module.exports)
+     require("vue-hot-reload-api").rerender("data-v-58ef36ac", module.exports)
   }
 }
 
 /***/ }),
-/* 162 */,
-/* 163 */
+/* 165 */,
+/* 166 */,
+/* 167 */,
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(130);
+module.exports = __webpack_require__(132);
 
 
 /***/ })

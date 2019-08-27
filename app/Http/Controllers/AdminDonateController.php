@@ -59,11 +59,11 @@ class AdminDonateController extends Controller
 
         $updates = $donateRequest->updates;
         //change to carbon time 09:00 AM/PM;
-        $updates[] = Auth::guard('web_admin')->user->name()." blood donation appointment time to ".$appointmentTime->format('h:i A').".";
+        $updates[] = Auth::guard('web_admin')->user()->name()." blood donation appointment time to ".$appointmentTime->format('h:i A').".";
         // change status to ongoing
         $donateRequest->update([
             'appointment_time' => $appointmentTime,
-            'status' => 'Pending',
+            'status' => 'Ongoing',
             'updates' => $updates,
             'updated_at' => Carbon::now()->toDateTimeString(),
             'flag' => 1,
@@ -237,7 +237,7 @@ class AdminDonateController extends Controller
                 $units = $details->units;
                 $cat = $details->blood_category;
                 // dd($category);
-                $updates[] = "A requester need(s) ".$units." bag(s) of ".$cat; 
+                $updates[] = "A requester demand(s) ".$units." bag(s) of ".$cat; 
             }
             // dd($updates);
             $sameBloodTypes = BloodRequestDetail::select(DB::raw('blood_category, SUM(units) as total_units'))
@@ -252,13 +252,13 @@ class AdminDonateController extends Controller
                 {
                     if($type->total_units > 1)
                     {
-                        $needed = " are needed.";
+                        $needed = " are demanded.";
                         $bags = " bags of ";
                     }
                     else
                     {
                         $bags = " bag of ";
-                        $needed = " is needed.";
+                        $needed = " is demanded.";
                     }
                     $updates[] = $type->total_units.$bags.$type->blood_category.$needed;
                 }
@@ -271,6 +271,7 @@ class AdminDonateController extends Controller
     }
     public function completeDonateRequest(Request $request, DonateRequest $donate)
     {
+
         $donateRequest = $donate;
 
         $validation = Validator::make($request->all(), [
@@ -288,6 +289,10 @@ class AdminDonateController extends Controller
         $donateRequest->bloodrequest()->update([
         'status' => 'Done',
         'updated_at' => Carbon::now()->toDateTimeString()
+        ]);
+
+        $donate->user->update([
+            'bloodType' => $request->input('bloodType')
         ]);
 
         Post::create([

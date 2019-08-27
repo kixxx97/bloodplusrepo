@@ -10,6 +10,7 @@ use App\User;
 use App\DonateRequest;
 use App\Jobs\SendTextBlast;
 use Illuminate\Console\Command;
+use App\Institution;
 use Artisan;
 use Auth;
 use App\Notifications\BloodRequestNotification;
@@ -17,8 +18,10 @@ use App\donorstemp;
 use Carbon\Carbon;
 use App\Post;
 use App\Log;
+use App\ScreenedBlood;
 use App\Campaign;
 use App\BloodInventory;
+use App\BloodCategory;
 
 class AdminController extends Controller
 {
@@ -47,21 +50,27 @@ class AdminController extends Controller
         }
         $events = json_encode($events);
         $bloodDonors = count(User::where('status','active')->get());
-        $campaignCount = count(Campaign::where('status','Done')->get());
+        $campaignCount = count(Campaign::where('status','Done')->whereHas('initiated.institute', function($query)
+         {
+            $query->where('id',Auth::guard('web_admin')->user()->institution_id);
+        })->get());
         $logs = Log::where('initiated_id',Auth::guard('web_admin')->user()->id)->orderBy('created_at','desc')->paginate(10);
-
-    	return view('admin.dashboard',compact('logs','campaignCount','newlyDonors','nxt','events'));
+        //get newly available blood bag
+        $bloodBags = count(ScreenedBlood::whereHas('components',  function($query) 
+        {
+            $query->where('status','Available');
+        })->where('status','Done')->whereDate('updated_at',Carbon::today())->get());
+    	return view('admin.dashboard',compact('logs','campaignCount','newlyDonors','nxt','events','bloodBags'));
     }
 
     public function request() {
 
         $id = Auth::guard('web_admin')->user()->institute->id;
-
-        $requests = BloodRequest::with(['details','user' => function ($query) {
+        $requests = BloodRequest::with(['details','user','donors' => function ($query) {
         }])->where('institution_id',$id)->orderBy('created_at')->get();
         $ongoingRequests = BloodRequest::with([
             'donors' => function ($query) {
-                $query->where('status','Ongoing');
+                $query->whereIn('status',['Ongoing','Done']);
             }])->where('institution_id',$id)->where('status', 'Ongoing')->orderBy('created_at')->get();
         
         // dd($requests);
@@ -87,15 +96,19 @@ class AdminController extends Controller
             $lastRequest = DonateRequest::where('status','Done')->where('initiated_by',$donor->id)->orderBy('appointment_time','desc')->first();
             if($lastRequest)
             {
+
                 if($lastRequest->appointment_time)
                 {
+
                     $donors[$count]['last'] = $lastRequest->appointment_time->format('F d Y');
                     $date = $lastRequest->appointment_time;
                 }
                 else
                 {
+
                     $donors[$count]['last'] = $lastRequest->created_at->format('F d Y');
                     $date = $lastRequest->created_at;
+
                 }
             $now = Carbon::now();
             if($date->addDays(90) >= $now)
@@ -109,17 +122,19 @@ class AdminController extends Controller
             }
             else
             {
+
             $donors[$count]['last'] = '';
             $ongoingRequest = DonateRequest::where('initiated_by',$donor->id)->whereIn('status',['Pending','Ongoing'])->get();
             if(count($ongoingRequest) > 0) 
                 {
-                    $donors[$count]['eligible'] = 'No';
+                    $donors[$count]['eligible'] = 'Yes';
                 }
             else
                 {
                     $donors[$count]['eligible'] = 'Yes';
                 }
             }
+
             $count++;
         }
 
@@ -176,7 +191,6 @@ class AdminController extends Controller
         else if($bloodRequest->details->blood_type == 'O+')
             $picture = asset('assets/img/bloodtype/O+.jpg');
 
-        // dd($picture);
         $post = Post::create([
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'message' => 'Someone is in need of blood heroes!.',
@@ -202,7 +216,7 @@ class AdminController extends Controller
         $usersent = array("name" => Auth::guard('web_admin')->user()->institute->name(),
                 "picture" => Auth::guard('web_admin')->user()->institute->picture());
 
-        $user->notify(new BloodRequestNotification($class,$usersent,'We have just accepted your request amd broadcasted to eligible donors.'));
+        $user->notify(new BloodRequestNotification($class,$usersent,'We have just accepted your request and broadcasted to eligible donors.'));
         
         // notify uban donors
         $sameBloodTypeUsers = User::with(['donations' => function ($query) {
@@ -213,39 +227,50 @@ class AdminController extends Controller
         })->where('bloodType',$bloodRequest->details->blood_type)->get();
 
         // return response()->json($sameBloodTypeUsers);
+        // dd($sameBloodTypeUsers);
         foreach($sameBloodTypeUsers as $user)
         {
             if($user->id != $bloodRequest->initiated_by)
             {
+                //0,1
             if(count($user->donations) != 0)
             {
-                //eligible to donate and has previous donations so tan.awn nato ang latest niya nga donation and if it is done then check the appointment_date if it is greater than 3 months.
                 if($user->donations->first()->status == 'Done')
                 {
+
                     $date = $user->donations->first()->appointment_time;
                     $now = Carbon::now();
-                    if($date->addDays(90) >= $now)
+                    if($now->gt($date->addDays(90)))
                     {
-                        $institution = Auth::guard('web_admin')->user()->institute->name();
-                        $message = "Someone is in need of your blood. Please donate to ".$institution.".";
+                        $tmpInstitution = Auth::guard('web_admin')->user()->institute;
+                        $withinDistance = $user->checkDistance($tmpInstitution);
+                        if($withinDistance)
+                        {
+                        $institution = $tmpInstitution->name();
+                        $message = "Hi ".$user->name()." Someone is in need of your blood. Please donate to ".$institution.".";
                         $user->notify(new BloodRequestNotification($class,$usersent,$message));
+                        $user->sendSMS($message);
+                        }
+                
+                    }
+                    else
+                    {
 
-
-                            // $mobile = $user->contactinfo;
-                            // Chikka::send($mobile, $message);
                     }
                 }
             }
             //wa pa siyay donation jd so eligible siya mu donate, and if age is greater than 15
             else
             {
-                $institution = Auth::guard('web_admin')->user()->institute->name();
-                $message = "Someone is in need of your blood. Please donate to ".$institution.".";
+                $tmpInstitution = Auth::guard('web_admin')->user()->institute;
+                $withinDistance = $user->checkDistance($tmpInstitution);
+                if($withinDistance)
+                {
+                $institution = $tmpInstitution->name();
+                $message = "Hi ".$user->name()." Someone is in need of your blood. Please donate to ".$institution.".";
                 $user->notify(new BloodRequestNotification($class,$usersent,$message));
-
-
-                    // $mobile = $user->contactinfo;
-                    // Chikka::send($mobile, $message);
+                $user->sendSMS($message);
+                }
             }
             }
         }
@@ -299,18 +324,19 @@ class AdminController extends Controller
             'br_detail_id' => $bloodRequest->details->id,
             'updated_at' => Carbon::now()->toDateTimeString()
             ]);
-
-        if(count($bloodRequest->releasedBlood) != $bloodRequest->details->units)
+        if(count($bloodRequest->details->releasedBlood) != $bloodRequest->details->units)
         {
             $cnt = count($request->input('serial'));
             $updates = $bloodRequest->updates;              
             $updates[] = 'You have just given '.$cnt.' blood bags';   
              
             $bloodRequest->update([
+                'status' => 'Ongoing',
                 'updates' => $updates,
                 'updated_at' => Carbon::now()->toDateTimeString()
                 ]);
             $bloodRequest->details()->update([
+                'status' => 'Ongoing',
                 'updated_at' => Carbon::now()->toDateTimeString()
             ]);
 
@@ -394,13 +420,10 @@ class AdminController extends Controller
     public function deleteRequest(Request $request)
     {
         $bloodRequest = BloodRequest::find($request->input('id'));
-        // dd($request->input());
         $updates = $bloodRequest->updates;
         $updates[] = $bloodRequest->institute->name().' has declined your blood request';
-        // dd($updates);
         $bloodRequest->update([
-            'status' => 'Declined',
-            'reason' => $request->input('message'),
+            'status' => 'Pending',
             'updates' => $updates,
             'updated_at' => Carbon::now()->toDateTimeString()
             ]);
@@ -413,16 +436,113 @@ class AdminController extends Controller
             'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
             'message' => 'You just declined a blood request!'
             ]);
-        $hero = $bloodRequest->user;
-        $message="Hi! Your blood request has been declined. For the reason of: ".$request->input('message');
+        $bloodBagId = $bloodRequest->details->bloodbag_id;
+        $inventories = BloodInventory::with('screenedBlood.donation.institute')->where('blood_type_id',$bloodBagId)->where('status','Available')->get();
+        $tmpInstitutions = collect();
+        if($inventories->isEmpty()){
+        $tmpInstitutions = Institution::where('status','active')->get();        
+        }
+        else
+        {
+        foreach($inventories as $inventory)
+        {
+            if($tmpInstitutions->isEmpty())
+            {
+                $institution = $inventory->screenedBlood->donation->institute;
+                $institution->count = 1;
+                $tmpInstitutions->push(
+                    $institution
+                    );
+            }
+            else
+            {
+                $institution = $inventory->screenedBlood->donation->institute;
+
+                $bool = $tmpInstitutions->contains(function ($value, $key) use($institution){
+                    if($value['id'] == $institution->id)
+                    {
+                        return true;
+                    }
+                });
+                if(!$bool)
+                {
+                    $institution->count = 1;
+                    $tmpInstitutions->push(
+                    $institution
+                    );
+                }
+                else
+                {
+                    $institutions = $tmpInstitutions->map(function ($item, $key) use($institution){
+                        if($item['id'] == $institution->id)
+                        {
+                        $item->count = $item->count+1;
+                        }
+
+                        return $item;
+                    });
+                }
+            }
+        }
+        $user = $bloodRequest->user;
+
+        $institutions = $tmpInstitutions->sortByDesc(function ($product, $key) {
+            return $product->count;
+            })->values();
+        }
+
+        $institutions = $institutions->sortBy(function ($product,$key) use ($user) {
+            $distance = $product->distanceFromUser($user);
+            return $distance;
+        })->values();
+
+            //1 ,2 ,3
+        $current = null;
+        $found = 'false';
+        $id = $bloodRequest->institution_id;
+        $institution = null;
+        foreach($institutions as $tmpInstitution)
+        {
+
+            if($found == 'true')
+            {
+                $institution = $tmpInstitution;
+            }
+            if($tmpInstitution->id == $id)
+            {
+                $found = 'true';
+            }
+        }
         $class = array("class" => "App\BloodRequest",
             "id" => $bloodRequest->id,
             "time" => $bloodRequest->created_at->toDateTimeString());
-        $usersent = array("name" => Auth::guard('web_admin')->user()->institute->name(),
-                "picture" => Auth::guard('web_admin')->user()->institute->picture());
 
-        $hero->notify(new BloodRequestNotification($class,$usersent,'We have declined your blood request.'));
-        // dispatch(new SendTextBlast($hero,$message));
+        $usersent = array(
+            "name" => Auth::guard('web_admin')->user()->institute->name(),
+            "picture" => Auth::guard('web_admin')->user()->institute->picture());
+
+        if($institution)
+        {
+        $bloodRequest->update([
+            'status' => 'Pending',
+            'institution_id' => $institution->id,
+            'updates' => $updates,
+            'updated_at' => Carbon::now()->toDateTimeString()
+            ]);
+
+        }
+        else
+        {
+            $bloodRequest->update([
+            'status' => 'Declined',
+            'updates' => $updates,
+            'updated_at' => Carbon::now()->toDateTimeString()
+            ]);
+
+            $user->notify(new BloodRequestNotification($class,$usersent,'Sorry, we can no longer process your blood request. There is insufficient supply in our blood banks'));
+        }
+        // dispatch(new SendTextBlast($hero,$message));.
+
         return redirect('/admin/request')->with('status', 'Request successfully declined!');
     }
 
@@ -586,12 +706,105 @@ class AdminController extends Controller
         ]);
     }
     
+    public function getUserLogs(User $user)
+    {
+        return view('admin.userprofile',compact('user'));
+    }
+
+    public function addBranch(Request $request)
+    {
+        $institution = Auth::guard('web_admin')->user()->institute;
+        $branchInstitution = Institution::find($request->input('id'));
+        $branchInstitution->update([
+            'mother_branch' => $institution->id,
+            'accepted' => 'Pending'
+        ]);
+        $admins = $branchInstitution->admins;
+        $class = array("class" => "App\Institution",
+            "id" => $institution->id,
+            "time" => Carbon::now()->toDateTimeString());
+        $user = array("name" => Auth::guard('web_admin')->user()->name(),
+                "picture" => Auth::guard('web_admin')->user()->picture());
+        $message = Auth::guard('web_admin')->user()->name().' would like you to be affiliated with our institution!';
+        foreach($admins as $admin)  
+        {
+            $admin->notify(new BloodRequestNotification($class,$user,$message));
+        
+        }
+
+        return redirect('/admin/branches')->with('status', 'Sent a request to add the institution as one of your branches!');
+    }
+
+    public function getBranches()
+    {
+        $branches = Auth::guard('web_admin')->user()->institute->branches;
+        return view('admin.branchinstitutions',compact('branches'));
+    }
+
+    public function getSpecificBranch(Institution $institution)
+    {
+        $bloodTypes = BloodCategory::with([
+          'bloodType' => function($query) use ($institution)
+          {
+            $query->whereIn('category',$institution->settings['bloodtype_available']);
+            $query->orderBy('category');
+          },'bloodType.inventory' => function ($query)
+          {
+            $query->where('status','Available');
+          }
+        ])->orderBy('name')->get();
+        return view('admin.specificbranch',compact('institution','bloodTypes'));
+    }
+
+    public function getHeadQuarter()
+    {
+        $hq = Auth::guard('web_admin')->user()->institute->motherBranch;
+        return view('admin.headquarter',compact('hq'));
+    }
+    public function remarkHeadQuarter(Request $request)
+    {
+        $remark = $request->input('remark');
+        $institute = Auth::guard('web_admin')->user()->institute;
+        if($remark == 'accept')
+        {
+            $institute->update([
+                'accepted' => 'Accepted'
+            ]);
+            $admins = $institute->motherBranch->admins;
+            $class = array("class" => "App\Institution",
+                "id" => $institute->id,
+                "time" => Carbon::now()->toDateTimeString());
+            $user = array("name" => Auth::guard('web_admin')->user()->name(),
+                    "picture" => Auth::guard('web_admin')->user()->picture());
+            $message = Auth::guard('web_admin')->user()->name().' is now affiliated to your institution!';
+            foreach($admins as $admin)  
+            {
+                $admin->notify(new BloodRequestNotification($class,$user,$message));
+            
+            }
+            return redirect('/admin/hq')->with('status','You have successfully made the institution your commanding blood bank');
+        }
+        else
+        {
+            $institute->update([
+                'accepted' => null,
+                'mother_branch' => null
+            ]);
+            $admins = $institute->motherBranch->admins;
+            $class = array("class" => "App\Institution",
+                "id" => $institute->id,
+                "time" => Carbon::now()->toDateTimeString());
+            $user = array("name" => Auth::guard('web_admin')->user()->name(),
+                    "picture" => Auth::guard('web_admin')->user()->picture());
+            $message = Auth::guard('web_admin')->user()->name().' declined your request to be affiliated with the blood bank!';
+            foreach($admins as $admin)  
+            {
+                $admin->notify(new BloodRequestNotification($class,$user,$message));
+            
+            }
+            return redirect('/admin/hq')->with('status','You have declined the institution as your commanding blood bank');
+        }
+    }
 }
 
-// $bloodbags = [
-//     'Karmi' => [
-//         'single' => [
-//         ],
-//         'dual' => [
-//         ]]
-// ]
+

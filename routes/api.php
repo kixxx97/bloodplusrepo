@@ -23,17 +23,18 @@ Route::group(['middleware' => 'preAuth'], function () {
 	Route::post('login', 'Api\AuthenticationController@login');
 	Route::get('/institutions','Api\InstitutionController@getInstitutions');
 	Route::get('/campaigns','Api\CampaignController@getCampaigns');
-	
+	Route::post('/institutions/match','Api\InstitutionController@getMatchingInstitutions');
 	
 	Route::get('/user/{user}/followers','Api\SocialController@getUserFollowers');
 	Route::get('/user/{user}/followings','Api\SocialController@getUserFollowings');
-	
 	Route::get('/users','Api\SocialController@getUsers');
 	Route::get('/post/{post}/comments','Api\CommentController@getComments');
 	// Route::post('/user','Api\SocialController@searchUsers');
  	Route::group(['middleware' => 'auth:api'], function() {
+ 		Route::post('/campaign/{campaign}/remark','Api\CampaignController@remarkAttendee');
  		Route::post('/user/notification/unread','Api\AuthenticationController@getUnreadNotifications');
  		Route::post('/user/refreshtoken','Api\AuthenticationController@refreshToken');
+ 		Route::post('/user/refreshlocation','Api\AuthenticationController@refreshLocation');
  		Route::post('/users','Api\SocialController@getAllUsers');
  		Route::get('/following/retrieve','Api\SocialController@getFollowing');
  		Route::get('/followers/retrieve','Api\SocialController@getFollowers');
@@ -54,7 +55,7 @@ Route::group(['middleware' => 'preAuth'], function () {
  		Route::post('/campaign/join/{campaign}','Api\CampaignController@joinCampaign');
  		Route::post('/campaigns/retrieve','Api\CampaignController@retrieveCampaigns');
 		Route::post('/campaign/{campaign}','Api\CampaignController@getSpecificCampaign');
-		Route::post('/campaign/{campaign}/remark','Api\CampaignController@remarkAttendee');
+		
 		Route::post('/user/{user}','Api\SocialController@getUser');
 		Route::post('/user/{user}/posts','Api\PostController@getUserPosts');
 		Route::post('/posts/retrieve','Api\PostController@getAllPost');
@@ -62,6 +63,7 @@ Route::group(['middleware' => 'preAuth'], function () {
     	Route::post('/post/{post}/unreact','Api\SocialController@unReact');
     	Route::post('/post/{post}/comment/create','Api\CommentController@createComment');
     	Route::post('/notifications','Api\NotificationsController@getNotifications'); 
+ 		Route::post('/unsubscribe','Api\AuthenticationController@unsubscribeUser');
  	});
  	Route::get('/institution/{institution}/campaigns','Api\CampaignController@getInstitutionCampaigns');
 });

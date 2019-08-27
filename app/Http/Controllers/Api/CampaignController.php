@@ -10,7 +10,6 @@ use App\Attendance;
 use Auth;
 use Carbon\Carbon;
 use App\Log;
-use App\Attendance;
 use App\User;
 use App\Institution;
 use App\Notifications\BloodRequestNotification;
@@ -48,6 +47,7 @@ class CampaignController extends Controller
 			]);
 
 		$i_id = $attendance->campaign->initiated->institution_id;
+        
 		$admins = InstitutionAdmin::where('institution_id',$i_id)->get();
 		$class = array("class" => "App\Campaign",
             "id" => $campaign->id,
@@ -119,17 +119,38 @@ class CampaignController extends Controller
  	}
  	//history campaigns
 
-    public function remarkAttendee(Campaign $campaign)
+    public function remarkAttendee(Request $request)
     {
+        Log::create(['id' => '1', 'message' => $request->input()]);
+        if($campaign->status == 'Ongoing')
+        {
+            $attendee = Attendance::where('user_id',Auth::user()->id)->where('campaign_id',$campaign->id)->first();
 
-        $attendee = Attendance::where('user_id',Auth::user()->id)->where('campaign_id',$campaign->id)->first()->update([
-            'remarks' => 'Attended',
-            'updated_at' => Carbon::now()->toDateTimeString()
-        ]);
-
-        return response()->json(array(
-        'status' => 'Successful',
-        'message' => 'Successfully marked as present'));
+            if($attendee)
+            {
+                $attendee->update([
+                    'remarks' => 'Attended',
+                    'updated_at' => Carbon::now()->toDateTimeString()
+                ]);
+            }
+            else
+            {
+               $attendance = Attendance::create([
+                'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+                'user_id' => Auth::user()->id,
+                'campaign_id' => $campaign->id,
+                'status' => 'Going',
+                'remarks' => 'Attended'
+                ]);    
+            }
+            return response()->json(array(
+            'status' => 'Successful',
+            'message' => 'Successfully marked as present'));
+        }
+        else
+            return response()->json(array(
+                'status' => 'Error',
+                'message' => 'Couldn\'t join finish campaigns'));
     }
     public function getInstitutionCampaigns(Institution $institution)
     {

@@ -9,6 +9,9 @@ use App\DonateRequest;
 use App\Follower;
 use App\Institution;
 use Auth;
+use \Carbon\Carbon;
+use App\Campaign;
+use App\Log;
 use App\User;
 use App\Post;	
 use App\Notifications\BloodRequestNotification;
@@ -51,6 +54,20 @@ class SocialController extends Controller
                 $countFollowers = $countFollowers + count($tmpNotMutuals);
             }
         }
+        $lastRequest = DonateRequest::where('status','Done')->where('initiated_by',Auth::user()->id)->orderBy('appointment_time','desc')->first();
+
+        if($lastRequest == null)
+        {
+            $lastRequest = null;
+            $nextDateDonation = 'Yes';
+            $lastDayDonated = null;
+        }
+        else
+        {
+            $date = $lastRequest->appointment_time;
+            $nextDateDonation = $date->addDays(90)->toDateTimeString();
+            $lastDayDonated = $lastRequest->appointment_time->toDateTimeString();
+        }
     	return response()->json([
     		'posts' => $posts,
     		'following' => $countFollowing,
@@ -58,6 +75,8 @@ class SocialController extends Controller
     		'status' => 'Successful',
             'bloodRequestCount' => $requestCount,
             'bloodDonateCount' => $donateCount,
+            'lastDayDonated' => $lastDayDonated,
+            'nextDayDonation' => $nextDateDonation,
     		'message' => 'Retrieved posts and followers']);
     }
     
@@ -96,7 +115,24 @@ class SocialController extends Controller
         // dd(count($followers));
         if(!Auth::user()->followedUsers->contains($tmpUser))
         {
-            Auth::user()->followedUsers()->attach($tmpUser->id);    
+            Auth::user()->followedUsers()->attach($tmpUser->id);
+            Log::create([
+                'initiated_id' => Auth::user()->id,
+                'initiated_type' => 'App\User',
+                'reference_type' => 'App\User',
+                'reference_id' => $tmpUser->id,
+                'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+                'message' => 'You have successfully followed .'.$tmpUser->name()
+                ]);
+            $class = array("class" => "App\User",
+                "id" => $tmpUser->id,
+                "time" => Carbon::now()->toDateTimeString());
+            $usersent = array(
+                "name" => Auth::user()->name(),
+                "picture" => Auth::user()->picture());
+
+            $tmpUser->notify(new BloodRequestNotification($class,$usersent,'You have been followed by'.$tmpUser->name()));
+
             return response()->json(['status' => 'Successful', 'message' => 'Successfully followed the user']);
         }
         else
@@ -112,7 +148,26 @@ class SocialController extends Controller
         // dd(count($followers));
         if(!Auth::user()->followedUsers->contains($tmpUser))
         {
-            Auth::user()->followedInstitutions()->attach($tmpUser->id);    
+            Auth::user()->followedInstitutions()->attach($tmpUser->id);
+            Log::create([
+                'initiated_id' => Auth::user()->id,
+                'initiated_type' => 'App\User',
+                'reference_type' => 'App\Institution',
+                'reference_id' => $tmpUser->id,
+                'id' => strtoupper(substr(sha1(mt_rand() . microtime()), mt_rand(0,35), 7)),
+                'message' => 'You have successfully followed .'.$tmpUser->name()
+                ]);
+            $class = array("class" => "App\User",
+                "id" => $tmpUser->id,
+                "time" => Carbon::now()->toDateTimeString());
+            $usersent = array(
+                "name" => Auth::user()->name(),
+                "picture" => Auth::user()->picture());
+            foreach($tmpUser->admins as $admin)
+            {
+                $admin->notify(new BloodRequestNotification($class,$usersent,'You have been followed by.'.$tmpUser->name()));
+            }
+
             return response()->json(['status' => 'Successful', 'message' => 'Successfully followed the institution']);
         }
         else
@@ -133,12 +188,11 @@ class SocialController extends Controller
         {
         $tmpMutuals = $followers->intersect(Auth::user()->followedUsers);
         $tmpNotMutuals = $followers->diff($tmpMutuals);
-        $mutuals = null;
         $notMutuals = null;
         $countFollowers = null;
+        $mutuals = array();
             if(count($tmpMutuals) != 0)
             {
-                $mutuals = array();
                 $count = 0;
                 foreach($tmpMutuals as $mutual)
                 {
@@ -151,14 +205,12 @@ class SocialController extends Controller
             } 
             if(count($tmpNotMutuals) != 0)
             {
-                $notMutuals = array();
-                $count = 0;
                 foreach($tmpNotMutuals as $notMutual)   
                 {
-                    $notMutuals[$count]['id'] = $notMutual->id;
-                    $notMutuals[$count]['name'] = $notMutual->name();
-                    $notMutuals[$count]['picture'] = $notMutual->picture();
-                    $notMutuals[$count]['banner'] = $notMutual->banner();
+                    $mutuals[$count]['id'] = $notMutual->id;
+                    $mutuals[$count]['name'] = $notMutual->name();
+                    $mutuals[$count]['picture'] = $notMutual->picture();
+                    $mutuals[$count]['banner'] = $notMutual->banner();
                     $count++;
                 }
             }
@@ -342,7 +394,8 @@ class SocialController extends Controller
         $wildcard = $request->input('name');
         // dd($wildcard)
         $tmpUsers = User::where('fname', 'like', $wildcard."%")->orWhere('lname','like', $wildcard."%")->get();
-        $tmpUsers = $tmpUsers->union(Institution::where('institution','like',$wildcard."%")->get());
+        $tmpUsers = $tmpUsers->merge(Institution::where('institution','like',$wildcard."%")->get());
+        $tmpUsers = $tmpUsers->merge (Campaign::where('name','like',$wildcard."%")->get());
         $users = null;
         if(count($tmpUsers) != 0)
         {  
@@ -352,6 +405,8 @@ class SocialController extends Controller
             {
                 $users[$count]['name'] = $tmpUser->name();
                 $users[$count]['id'] = $tmpUser->id;
+                $tmpModel = substr(get_class($tmpUser),4);
+                $users[$count]['type'] = $tmpModel;
                 $count++;
             }
         }

@@ -42,7 +42,7 @@
                 <td>{{$screenedBlood->bag_type}}</td>
                 <td>{{$screenedBlood->bag_component}}</td>
                 <td>{{$screenedBlood->componentsToString()}}</td>
-                <td>{{$screenedBlood->created_at}}</td>
+                <td>{{$screenedBlood->created_at->format(' F d, Y ')}}</td>
                 <td>
                   <a href ="{{url('admin/donate/'.$screenedBlood->donation->id.'/view')}}">
                   <button type="button" value = "{{$screenedBlood->donation->id}}" class="btn-s btn-info"><i class="fa fa-eye"></i></button>
@@ -57,7 +57,12 @@
           </tbody>
         </table>
       </div>
-      <input type ="submit" value ="Complete Screening"/>
+        <div class="container-fluid">
+        <button type ="submit" class ="btn btn-danger" value =""/> Complete Screening
+        </button>
+        <br><br>
+        </div>
+      </div>
     </form>
     </div>
 </div>

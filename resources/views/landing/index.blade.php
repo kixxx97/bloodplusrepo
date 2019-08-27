@@ -2,6 +2,11 @@
 @section('title','BloodPlus')
 
 @section('content')
+@if (session('status'))
+  <div id = "alertmsg" style="display:none">
+  {{ session('status') }}
+  </div>
+@endif
     <header id="home">
         <div class="container">
             <div class="row">
@@ -32,160 +37,81 @@
             </div>
         </div>
     </header>
-
-
-    <section id="carousel">
-
-      <h2 class="sr-headings2">Someone Needs You!</h2>
-      <hr class="sr-headings2" id="hrhelp">
-      <h3 id="carouselsub" class="sr-headings3">Donate blood, save a life. </h3>
-
-              <div class="container">
-              <div class="row">
-                    <div class="col-md-12 car" data-wow-delay="0.2s">
-                        <div class="carousel slide" data-ride="carousel" id="quote-carousel">
-                            <ol class="carousel-indicators">
-                            @forelse($requests as $request)
-                            @if($counter++ == 0) 
-
-                                <li data-target="#quote-carousel" data-slide-to="0" class="active">
-                                </li>
-                            @else
-                                <li data-target="#quote-carousel" data-slide-to="1">  
-                                </li>                                
-                                
-                            @endif
-                            @empty
-                            @endforelse
-
-                            <?php
-                              $counter = 0;
-                            ?>
-                            </ol>
-
-                            </ol>
-                            <div class="carousel-inner text-center" role="listbox">
-                                @forelse($requests as $request) 
-                                @if($counter++ == 0) 
-                                <div class="carousel-item active">
-                                    <blockquote>
-                                        <div class="row">
-                                            <div class="col-sm-8 col-sm-offset-2">
-                                              <h3> Blood Type {{$request->details->blood_type}}</h3>
-
-                                                <p>{{$request->diagnose}}<br>{{$request->created_at->format(' jS \\of F, Y')}}<br>{{$request->institute->institution}}<br><br><br><br></p>
-                                                <!-- <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat 
-                                                nulla pariatur!</p> -->
-
-                                                <a href = "{{ url('home?request='.$request->id) }} " class="btn btn-xl" href="#">Donate Now</a>
-                                            </div>
-
-                                        </div>
-                                    </blockquote>
-
-                                </div>
-                                @else 
-                                <div class="carousel-item">
-                                    <blockquote>
-                                        <div class="row">
-                                            <div class="col-sm-8 col-sm-offset-2">
-                                              <h3> Blood Type {{$request->details->blood_type}}</h3>
-
-                                                <p>{{$request->diagnose}}<br>{{$request->created_at->format(' jS \\of F, Y')}}<br>\{{$request->institute->institution}}<br></p>
-                                                <!-- <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur!</p> -->
-                                                <a href = "{{ url('login?request='.$request->id) }} " class="btn btn-xl" href="#">Donate Now</a>
-                                            </div>
-                                        </div>
-                                    </blockquote>
-                                </div>
-                                @endif
-                                @empty
-                                <h1>Help people find blood and save life.</h1>
-                                @endforelse
-                                
-
-<!--                              <a class="carousel-control-prev" href="#quote-carousel" role="button" data-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="false"></span>
-                                <span class="sr-only">Previous</span>
-                              </a>
-                              <a class="carousel-control-next" href="#quote-carousel" role="button" data-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="false"></span>
-                                <span class="sr-only">Next</span>
-                              </a> -->
-
-                            <a data-slide="prev" href="#quote-carousel" class="left carousel-control"><i class="fa fa-chevron-left"></i></a>
-                            <a data-slide="next" href="#quote-carousel" class="right carousel-control"><i class="fa fa-chevron-right"></i></a>
-                        </div>
-                    </div>
+  <section id ="carousel">
+      <h2 class="sr-headings2">Blood Crowdfunding Project</h2>
+    <div class="row" style ="margin-left: 10px">
+    @forelse($cards as $card)
+      <div class="col-md-3">
+      <div class="example-2 card">
+        <div class="wrapper" style ="background: url('{{$card->picture}}') center/cover no-repeat">
+          <div class="header">
+            <div class="date">
+              <span class="day">{{$card->date_start->format('F')}}</span>
+              <span class="month">{{$card->date_start->format('d')}}</span>
+              <span class="year">{{$card->date_start->format('Y')}}</span>
+            </div>
+          </div>
+          <div class="data">
+            <div class="content">
+              <span class="author">{{$card->initiated->name()}}</span>
+              <h1 class="title"><a href="#">{{$card->name}}</a></h1>
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="70"
+                aria-valuemin="0" aria-valuemax="100" style="width:70%">
+                  <span class="">70% Complete</span>
                 </div>
-
-          </div> 
-          </section>
-<!--   <section class="animation-box">
-    <div class="second-text">This is another example text</div>
-  </section> -->
-<!-- 
-  <header>
-
-      <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
-
-      <h2>Someone Needs You!</h2>
-        <ol class="carousel-indicators">
-          <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-          <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-          <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-        </ol>
-
-        <div class="carousel-inner" role="listbox">
-
-          <div class="carousel-item active">
-            <div class="carousel-caption d-none d-md-block">
-              <h3>First Slide</h3>
-              <p>This is a description for the first slide.</p>
+              </div>
+              <div class ="text">
+                <a href="{{url('/register')}}" class="button">Join Us!</a>
+              </div>
+              <a href="#" class="button">Join Us!</a>
             </div>
           </div>
-
-          <div class="carousel-item">
-            <div class="carousel-caption d-none d-md-block">
-              <h3>Second Slide</h3>
-              <p>This is a description for the second slide.</p>
-            </div>
-          </div>
-
-          <div class="carousel-item">
-            <div class="carousel-caption d-none d-md-block">
-              <h3>Third Slide</h3>
-              <p>This is a description for the third slide.</p>
-            </div>
-          </div>
-        </div>
-
-
-        <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="false"></span>
-          <span class="sr-only">Previous</span>
-        </a>
-        <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="false"></span>
-          <span class="sr-only">Next</span>
-        </a>
       </div>
-    </header>
- -->
+    </div>
+   </div>
+  @empty
+      <h3 class="sr-headings2">There is no blood crowdfunding activities yet!</h3>
+    @endforelse
 
-<!--     <section class="bg-primary" id="about">
-      <div class="container"> 
-        <div class="row">
-          <div class="col-lg-8 mx-auto text-center">
-            <hr class="sr-headings">
-            <p class="text-faded">Start Bootstrap has everything you need to get your new website up and running in no time! All of the templates and themes on Start Bootstrap are open source, free to download, and easy to use. No strings attached! Start Bootstrap has everything you need to get your new website up and running in no time! All of the templates and themes on Start Bootstrap are open source, free to download, and easy to use. No strings attached!<br><br><br><br><br><br></p>
-            <a class="btn btn-default btn-xl sr-button" href="#services">Donate Now!</a>
+  </div>
+  <br><br>
+      <h2 class="sr-headings2">Blood Awareness Drives</h2>
+    <div class="row" style ="margin-left: 10px">
+    @forelse($eventCards as $card)
+      <div class="col-md-3">
+      <div class="example-2 card">
+        <div class="wrapper" style ="background: url('{{$card->picture}}') center/cover no-repeat">
+          <div class="header">
+            <div class="date">
+              <span class="day">{{$card->date_start->format('F')}}</span>
+              <span class="month">{{$card->date_start->format('d')}}</span>
+              <span class="year">{{$card->date_start->format('Y')}}</span>
+            </div>
           </div>
-        </div>
+          <div class="data">
+            <div class="content">
+              <span class="author">{{$card->initiated->name()}}</span>
+              <h1 class="title"><a href="#">{{$card->name}}</a></h1>
+              <div>
+                  {!! $card->description !!}
+              </div>
+              <div class ="text">
+                <a href="{{url('/register')}}" class="button">Join Us!</a>
+              </div>
+              <a href="#" class="button">Join Us!</a>
+            </div>
+          </div>
       </div>
+    </div>
+   </div>
+  @empty
+      <h3 class="sr-headings2">There is no blood crowdfunding activities yet!</h3>
+    @endforelse
+    
+  </div>
     </section>
- -->
-
+  </div>
     <section id="services">
       <div class="container">
         <div class="row">
@@ -274,4 +200,12 @@
   
 
   @stop
-
+@section('additional_js')
+<script>
+$(document).ready(function() {
+  var message = document.getElementById('alertmsg').innerHTML;
+      if(message != '')
+      alert(message);
+    });
+</script>
+@stop

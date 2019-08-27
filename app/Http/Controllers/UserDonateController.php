@@ -74,7 +74,7 @@ class UserDonateController extends Controller
     	$validation = Validator::make($request->all(), [
             'institution_id' => 'required',
             'donatedate' => 'required|date',
-            'donatetime' => 'required|date_format:"H:i"|after:'.$now,
+            'donatetime' => 'required|date_format:"H:i"',
             ]);
  if ($validation->fails()) {
     dd($validation->errors());

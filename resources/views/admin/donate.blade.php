@@ -62,17 +62,16 @@
           
               <td>{{ $donor->user->fname.' '.$donor->user->lname }} </td>
               <td>{{ $donor->user->bloodType}}</td>
-                @if($donor->appointment_time)
+                @if($donor->bloodrequest)
+              <td>RESPONDING</td>
+              <td>{{$donor->bloodrequest->blood_request_id}}</td>
+                @else
               <td>VOLUNTARY</td>
               <td>n/a</td>
+                @endif
               <td>{{ $donor->appointment_time->format('F d Y')}}</td>
               <td>{{ $donor->appointment_time->format(' h:i A')}}</td>
-                @else
-              <td>RESPONSE</td>
-              <td>{{$donor->bloodRequest->request->id}}</td>
-              <td>{{ $donor->created_at->format('F d Y') }}</td>
-              <td>  P</td>
-              @endif
+  
               @if($donor->status == 'Ongoing')
               <td>
               <a href ="{{url('admin/donate/'.$donor->id).'/medical_history/retrieve'}}">
@@ -115,7 +114,6 @@
                 <th>Request ID</th>
                 <th>Appointment Date</th>
                 <th>Appointment Time</th>
-                <th>Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -128,24 +126,20 @@
               <td>{{$donor->user->name()}}</td>
               <td>0{{ $donor->user->contactinfo }}</td>
               <td>{{ $donor->user->bloodType}}</td>
-              @if($donor->appointment_time)
+                @if($donor->bloodrequest)
+              <td>RESPONDING</td>
+              <td>{{$donor->bloodrequest->blood_request_id}}</td>
+                @else
               <td>VOLUNTARY</td>
               <td>n/a</td>
+                @endif
               <td>{{ $donor->appointment_time->format('F d Y')}}</td>
               <td>{{ $donor->appointment_time->format(' h:i A')}}</td>
-              @else
-              <td>RESPONSE</td>
-              <td>{{$donor->bloodRequest->request->id}}</td>
-              <td>{{ $donor->created_at->format('F d Y')}}</td>
-              <td>ASAP</td>
-              @endif
-              <td>{{ $donor->status }} </td>
               @if($donor->status == "Ongoing")
               <td>
               <a href ="{{url('admin/donate/'.$donor->id).'/medical_history/retrieve'}}">
               <button type="button" value = "{{$donor->id}}" class="btn-s btn-info"><i class="fa fa-eye"></i></button>
               </a>
-
               </td>
               @else
               <td>

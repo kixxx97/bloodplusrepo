@@ -108,7 +108,7 @@
                             </div>
                             <ul class="list-inline pull-right">
                             <br>
-                                <li><button type="button" class="btn btn-primary next-step">Save and continue</button></li>
+                                <li><button type="button" class="btn btn-danger next-step">Save and continue</button></li>
                             </ul>
                         </div>
                     </div>
@@ -186,7 +186,7 @@
                             <ul class="list-inline pull-right">
                             <br>
                                 <li><button type="button" class="btn btn-default prev-step">Previous</button></li>
-                                <li><button type="button" class="btn btn-primary btn-info-full next-step">Save and continue</button></li>
+                                <li><button type="button" class="btn btn-danger btn-info-full next-step">Save and continue</button></li>
                             </ul>
                         </div>
                     </div>
@@ -228,7 +228,7 @@
                             <ul class="list-inline pull-right">
                             <br>
                                 <li><button type="button" class="btn btn-default prev-step">Previous</button></li>
-                                <li><button type="button" class="btn btn-primary btn-info-full next-step">Save and continue</button></li>
+                                <li><button type="button" class="btn btn-danger btn-info-full next-step">Save and continue</button></li>
                             </ul>
                         </div>
                     <div class="tab-pane" role="tabpanel" id="complete">
@@ -242,11 +242,16 @@
                                 <div class="col-md-12">
                                     <input type="password" class="form-control" name="password" value="{{old('password')}}" required autofocus>
                                 </div>
-                            </div>
+                            </div><br><br>
+                            <center>
+                            <label>
+                            By clicking Complete Registration, you are indicating that you have read and agree to the <br> <a href ="{{url('/admin/terms')}}" >Terms and Agreements </a>stipulated by BloodPlus
+                            </label>
+                        </center>
                             <ul class="list-inline pull-right">
                             <br>
                                 <li><button type="button" class="btn btn-default prev-step">Previous</button></li>
-                                <li><button type="submit" class="btn btn-primary btn-info-full next-step">Complete Registration</button></li>
+                                <li><button type="submit" class="btn btn-danger btn-info-full next-step">Complete Registration</button></li>
                             </ul>
                         </div>
                     </div>

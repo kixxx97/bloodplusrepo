@@ -19,7 +19,7 @@ class Campaign extends Model
 	//blood drive or not.
 
 	protected $fillable = [
-	'id','name','address','description','date_start','date_end','status','picture','initiated_by'
+	'id','name','address','description','date_start','date_end','status','picture','initiated_by','type','quota'
 	];
 	    
 	public function initiated()
@@ -36,5 +36,13 @@ class Campaign extends Model
 	{
 		return $this->belongsToMany('App\User','attendances','campaign_id','user_id')->withPivot('status')->withTimeStamps()->using('App\ReactionPost');
 	}
+	public function name()
+	{
+		return $this->name;
+	}
 
+	public function picture()
+	{
+		return $this->picture;
+	}
 }

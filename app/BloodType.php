@@ -24,26 +24,44 @@ class BloodType extends Model
     	return $this->hasMany('App\BloodInventory','blood_type_id','id');
     }
 
-    public function institutionInventory($id)
+    public function institutionInventory($id,$self = true)
     {
         $inventory = $this->inventory;
+        if($self)
+        {
         $filtered = $inventory->filter(function ($value, $key) use ($id){
-        if($value->screenedBlood->donation->institution_id == $id)
+        if($value->screenedBlood->donation->institute->id == $id)
+        return $value->status == 'Available';
+        });     
+        }
+        else
+        {
+        $filtered = $inventory->filter(function ($value, $key) use ($id){
+        if($value->screenedBlood->donation->institute->id == $id || $value->screenedBlood->donation->institute->mother_branch == $id)
         {
             return true;
         }
         });
+        }
         return $filtered;
     }
-    public function nonReactive($id)
+    public function nonReactive($id,$self = true)
     {
         $inventory = $this->inventory;
+        if($self)
+        {
         $filtered = $inventory->filter(function ($value, $key) use ($id){
-        // dd($id);
-        // dd($value);
-        if($value->screenedBlood->donation->institution_id == $id)
+        if($value->screenedBlood->donation->institute->id == $id)
+        return $value->status == 'Available';
+        });    
+        }
+        else
+        {
+        $filtered = $inventory->filter(function ($value, $key) use ($id){
+        if($value->screenedBlood->donation->institute->id == $id || $value->screenedBlood->donation->institute->mother_branch == $id)
         return $value->status == 'Available';
         });
+        }
         return $filtered;
     }
 

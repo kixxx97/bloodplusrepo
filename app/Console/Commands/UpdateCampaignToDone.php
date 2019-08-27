@@ -40,8 +40,8 @@ class UpdateCampaignToDone extends Command
      */
     public function handle()
     {
-        $ongoingCampaigns = Campaign::where('status','Ongoing')->whereDate('date_end','<=',Carbon::now()->addHours(12))->get();
-        Campaign::where('status','Ongoing')->whereDate('date_end','<=',Carbon::now()->addHours(12))->update([
+        $ongoingCampaigns = Campaign::where('status','Ongoing')->where('date_end','<=',Carbon::now()->addHours(12))->get();
+        Campaign::where('status','Ongoing')->where('date_end','<=',Carbon::now()->addHours(12))->update([
         'status' => 'Done',
         'updated_at' => Carbon::now()->toDateTimeString()
         ]);
